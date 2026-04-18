@@ -103,7 +103,7 @@ async function refreshDashboard() {
 
     supabaseClient
       .from("income")
-      .select("id,amount,date,source,received_by")
+      .select("id,amount,date,source,received_by,note")
       .order("date", { ascending: false }),
 
     supabaseClient
@@ -158,14 +158,15 @@ async function refreshDashboard() {
   `).join("");
 
   incomeBody.innerHTML = income.slice(0, 5).map(row => `
-    <tr>
-      <td>${money(row.amount)}</td>
-      <td>${escapeHtml(row.date)}</td>
-      <td>
-        <button type="button" onclick="deleteIncome('${row.id}')">Delete</button>
-      </td>
-    </tr>
-  `).join("");
+  <tr>
+    <td>${money(row.amount)}</td>
+    <td>${escapeHtml(row.date)}</td>
+    <td>${escapeHtml(row.received_by)}</td>
+    <td>
+      <button type="button" onclick="deleteIncome('${row.id}')">Delete</button>
+    </td>
+  </tr>
+`).join("");
 
   savingsBody.innerHTML = savings.slice(0, 5).map(row => `
     <tr>
@@ -222,6 +223,9 @@ async function addIncome(e) {
 
   payload.user_id = user?.id || null;
   payload.amount = Number(payload.amount);
+  payload.source = payload.source || null;
+  payload.received_by = payload.received_by || null;
+  payload.note = payload.note || null;
 
   const { error } = await supabaseClient.from("income").insert(payload);
   if (error) {
