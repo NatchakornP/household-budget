@@ -153,7 +153,7 @@ async function refreshDashboard() {
       <td>${escapeHtml(row.paid_by)}</td>
       <td>
         <button type="button" onclick="openEditexpense('${row.id}')">Details</button>
-        <button type="button" onclick="deleteExpense('${row.id}')">Delete</button>
+        <button type="button" class="danger" onclick="deleteExpense('${row.id}')">Delete</button>
       </td>
     </tr>
   `).join("");
@@ -165,7 +165,7 @@ async function refreshDashboard() {
     <td>${escapeHtml(row.received_by)}</td>
     <td>
       <button type="button" onclick="openEditIncome('${row.id}')">Details</button>
-      <button type="button" onclick="deleteIncome('${row.id}')">Delete</button>
+      <button type="button" class="danger" onclick="deleteIncome('${row.id}')">Delete</button>
     </td>
   </tr>
 `).join("");
@@ -178,7 +178,7 @@ async function refreshDashboard() {
     <td>${escapeHtml(row.created_by)}</td>
     <td>
       <button type="button" onclick="openEditsavings('${row.id}')">Details</button>
-      <button type="button" onclick="deleteSavings('${row.id}')">Delete</button>
+      <button type="button" class="danger" onclick="deleteSavings('${row.id}')">Delete</button>
     </td>
   </tr>
 `).join("");
