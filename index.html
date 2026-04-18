@@ -130,20 +130,32 @@
       <section class="feature-section">
 
         <div class="card">
-          <h3>Add Savings</h3>
-          <form id="savingsForm">
-            <select id="goalSelect" name="goal_id"></select>
-            <input name="amount" type="number" placeholder="Amount" required />
-            <button type="submit">Save</button>
-          </form>
-        </div>
+  <h3>Add Savings</h3>
+  <form id="savingsForm">
+    <select id="goalSelect" name="goal_id" required></select>
+    <input name="amount" type="number" step="0.01" placeholder="Amount" required />
+    <input name="date" type="date" required />
+    <input name="created_by" placeholder="Created by" />
+    <input name="note" placeholder="Note" />
+    <button type="submit">Save</button>
+  </form>
+</div>
 
         <div class="card">
-          <h3>Recent Savings</h3>
-          <table>
-            <tbody id="savingsBody"></tbody>
-          </table>
-        </div>
+  <h3>Recent Savings</h3>
+  <table>
+    <thead>
+      <tr>
+        <th>Goal</th>
+        <th>Amount</th>
+        <th>Date</th>
+        <th>Created by</th>
+        <th>Actions</th>
+      </tr>
+    </thead>
+    <tbody id="savingsBody"></tbody>
+  </table>
+</div>
 
       </section>
 
