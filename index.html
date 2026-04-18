@@ -4,251 +4,85 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Household Budget</title>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <style>
-    :root {
-      --bg: #f7f7fb;
-      --card: #ffffff;
-      --text: #1f2937;
-      --muted: #6b7280;
-      --border: #e5e7eb;
-      --accent: #2563eb;
-      --danger: #dc2626;
-    }
 
-    * { box-sizing: border-box; }
-
-    body {
-      margin: 0;
-      font-family: Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-    }
-
-    .wrap {
-      max-width: 1100px;
-      margin: 0 auto;
-      padding: 24px;
-    }
-
-    h1, h2, h3 {
-      margin: 0 0 12px;
-    }
-
-    .muted {
-      color: var(--muted);
-    }
-
-    .card {
-      background: var(--card);
-      border: 1px solid var(--border);
-      border-radius: 16px;
-      padding: 16px;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
-      margin-bottom: 16px;
-    }
-
-    .grid {
-      display: grid;
-      gap: 16px;
-      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
-    }
-
-    .stats {
-      display: grid;
-      gap: 16px;
-      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-      margin-bottom: 16px;
-    }
-
-    .stat-value {
-      font-size: 28px;
-      font-weight: bold;
-    }
-
-    .row {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-      align-items: center;
-      justify-content: space-between;
-    }
-
-    form {
-      display: grid;
-      gap: 10px;
-    }
-
-    input, select, button, textarea {
-      width: 100%;
-      padding: 10px 12px;
-      border: 1px solid var(--border);
-      border-radius: 10px;
-      font: inherit;
-      background: white;
-    }
-
-    textarea {
-      min-height: 90px;
-      resize: vertical;
-    }
-
-    button {
-      background: var(--accent);
-      color: white;
-      border: none;
-      cursor: pointer;
-      width: auto;
-    }
-
-    button.secondary {
-      background: white;
-      color: var(--text);
-      border: 1px solid var(--border);
-    }
-
-    button.danger {
-      background: var(--danger);
-      color: white;
-    }
-
-    .hidden {
-      display: none;
-    }
-
-    table {
-      width: 100%;
-      border-collapse: collapse;
-      margin-top: 8px;
-    }
-
-    th, td {
-      text-align: left;
-      padding: 10px 8px;
-      border-bottom: 1px solid var(--border);
-      vertical-align: top;
-      font-size: 14px;
-    }
-
-    .actions {
-      display: flex;
-      gap: 6px;
-      flex-wrap: wrap;
-    }
-
-    .inline-buttons {
-      display: flex;
-      gap: 8px;
-      flex-wrap: wrap;
-    }
-
-    .auth-row {
-      display: grid;
-      gap: 10px;
-      grid-template-columns: 1fr 1fr auto auto;
-      align-items: center;
-    }
-
-    @media (max-width: 760px) {
-      .auth-row {
-        grid-template-columns: 1fr;
-      }
-    }
-  </style>
+  <!-- CSS -->
+  <link rel="stylesheet" href="style.css">
 </head>
+
 <body>
   <div class="wrap">
-    <div class="row" style="margin-bottom: 16px;">
+
+    <!-- HEADER -->
+    <div class="row">
       <div>
         <h1>Household Budget</h1>
-        <div class="muted">Track expenses, income, savings, and recent transactions.</div>
+        <p class="muted">Track expenses, income, and savings</p>
       </div>
-      <button id="logoutBtn" class="secondary hidden" type="button">Log out</button>
+      <button id="logoutBtn" class="secondary hidden">Log out</button>
     </div>
 
+    <!-- AUTH -->
     <section id="authSection" class="card">
       <h2>Login / Signup</h2>
-      <p class="muted">Use the same email and password you already created.</p>
       <div class="auth-row">
         <input id="email" type="email" placeholder="Email" />
         <input id="password" type="password" placeholder="Password" />
-        <button id="loginBtn" type="button">Login</button>
-        <button id="signupBtn" type="button" class="secondary">Signup</button>
+        <button id="loginBtn">Login</button>
+        <button id="signupBtn" class="secondary">Signup</button>
       </div>
       <p id="authMessage" class="muted"></p>
     </section>
 
+    <!-- APP -->
     <section id="appSection" class="hidden">
+
+      <!-- STATS -->
       <div class="stats">
         <div class="card">
-          <div class="muted">Tracked balance</div>
-          <div class="stat-value" id="trackedBalance">0</div>
+          <p class="muted">Balance</p>
+          <h2 id="trackedBalance">0</h2>
         </div>
+
         <div class="card">
-          <div class="muted">Total income</div>
-          <div class="stat-value" id="totalIncome">0</div>
+          <p class="muted">Income</p>
+          <h2 id="totalIncome">0</h2>
         </div>
+
         <div class="card">
-          <div class="muted">Total expenses</div>
-          <div class="stat-value" id="totalExpenses">0</div>
+          <p class="muted">Expenses</p>
+          <h2 id="totalExpenses">0</h2>
         </div>
+
         <div class="card">
-          <div class="muted">Total saved</div>
-          <div class="stat-value" id="totalSaved">0</div>
+          <p class="muted">Saved</p>
+          <h2 id="totalSaved">0</h2>
         </div>
       </div>
 
-      <div class="grid">
+      <!-- EXPENSE SECTION -->
+      <section class="feature-section">
+
+        <!-- ADD -->
         <div class="card">
-          <h2>Add Expense</h2>
+          <h3>Add Expense</h3>
           <form id="expenseForm">
             <input name="title" placeholder="Title" required />
-            <input name="amount" type="number" step="0.01" placeholder="Amount" required />
+            <input name="amount" type="number" placeholder="Amount" required />
             <input name="date" type="date" required />
-            <input name="category" placeholder="Category" />
-            <input name="paid_by" placeholder="Paid by (Chompoo or Mads)" />
-            <input name="note" placeholder="Note" />
-            <button type="submit">Save expense</button>
+            <input name="paid_by" placeholder="Paid by" />
+            <button type="submit">Save</button>
           </form>
         </div>
 
+        <!-- LIST -->
         <div class="card">
-          <h2>Add Income</h2>
-          <form id="incomeForm">
-            <input name="amount" type="number" step="0.01" placeholder="Amount" required />
-            <input name="date" type="date" required />
-            <input name="source" placeholder="Source (salary, bonus...)" />
-            <input name="received_by" placeholder="Received by (Chompoo or Mads)" />
-            <input name="note" placeholder="Note" />
-            <button type="submit">Save income</button>
-          </form>
-        </div>
-
-        <div class="card">
-          <h2>Add Savings Contribution</h2>
-          <form id="savingsForm">
-            <select name="goal_id" id="goalSelect" required>
-              <option value="">Choose goal</option>
-            </select>
-            <input name="amount" type="number" step="0.01" placeholder="Amount" required />
-            <input name="date" type="date" required />
-            <input name="created_by" placeholder="Created by (Chompoo or Mads)" />
-            <input name="note" placeholder="Note" />
-            <button type="submit">Save contribution</button>
-          </form>
-        </div>
-      </div>
-
-      <div class="grid" style="margin-top: 16px;">
-        <div class="card">
-          <h2>Recent Expenses</h2>
+          <h3>Recent Expenses</h3>
           <table>
             <thead>
               <tr>
                 <th>Title</th>
                 <th>Amount</th>
                 <th>Date</th>
-                <th>Paid by</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -256,504 +90,63 @@
           </table>
         </div>
 
+      </section>
+
+      <!-- INCOME SECTION -->
+      <section class="feature-section">
+
         <div class="card">
-          <h2>Recent Income</h2>
+          <h3>Add Income</h3>
+          <form id="incomeForm">
+            <input name="amount" type="number" placeholder="Amount" required />
+            <input name="date" type="date" required />
+            <button type="submit">Save</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h3>Recent Income</h3>
           <table>
-            <thead>
-              <tr>
-                <th>Amount</th>
-                <th>Date</th>
-                <th>Source</th>
-                <th>Received by</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
             <tbody id="incomeBody"></tbody>
           </table>
         </div>
 
+      </section>
+
+      <!-- SAVINGS SECTION -->
+      <section class="feature-section">
+
         <div class="card">
-          <h2>Recent Savings Contributions</h2>
+          <h3>Add Savings</h3>
+          <form id="savingsForm">
+            <select id="goalSelect" name="goal_id"></select>
+            <input name="amount" type="number" placeholder="Amount" required />
+            <button type="submit">Save</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h3>Recent Savings</h3>
           <table>
-            <thead>
-              <tr>
-                <th>Goal</th>
-                <th>Amount</th>
-                <th>Date</th>
-                <th>Created by</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
             <tbody id="savingsBody"></tbody>
           </table>
         </div>
 
-        <div class="card">
-          <h2>Savings Goals</h2>
-          <table>
-            <thead>
-              <tr>
-                <th>Goal</th>
-                <th>Target</th>
-                <th>Saved</th>
-              </tr>
-            </thead>
-            <tbody id="goalsBody"></tbody>
-          </table>
-        </div>
-      </div>
-
-      <section id="editSection" class="card hidden">
-        <div class="row">
-          <h2 id="editTitle">Edit item</h2>
-          <button id="cancelEditBtn" type="button" class="secondary">Cancel</button>
-        </div>
-        <form id="editForm"></form>
       </section>
+
+      <!-- GOALS -->
+      <section class="card">
+        <h3>Savings Goals</h3>
+        <table>
+          <tbody id="goalsBody"></tbody>
+        </table>
+      </section>
+
     </section>
+
   </div>
 
-  <script>
-    const SUPABASE_URL = "https://dbqprjqpjnxxsdsnazag.supabase.co";
-    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRicXByanFwam54eHNkc25hemFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MTM4MDksImV4cCI6MjA5MjA4OTgwOX0.i2vB5P0_6DMkqVmD7MjuTpFbXa6Fxjg6xEbZSiG-WYY";
-
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
-
-    const authSection = document.getElementById("authSection");
-    const appSection = document.getElementById("appSection");
-    const authMessage = document.getElementById("authMessage");
-    const logoutBtn = document.getElementById("logoutBtn");
-
-    const trackedBalanceEl = document.getElementById("trackedBalance");
-    const totalIncomeEl = document.getElementById("totalIncome");
-    const totalExpensesEl = document.getElementById("totalExpenses");
-    const totalSavedEl = document.getElementById("totalSaved");
-
-    const expensesBody = document.getElementById("expensesBody");
-    const incomeBody = document.getElementById("incomeBody");
-    const savingsBody = document.getElementById("savingsBody");
-    const goalsBody = document.getElementById("goalsBody");
-    const goalSelect = document.getElementById("goalSelect");
-
-    const editSection = document.getElementById("editSection");
-    const editTitle = document.getElementById("editTitle");
-    const editForm = document.getElementById("editForm");
-    const cancelEditBtn = document.getElementById("cancelEditBtn");
-
-    function money(value) {
-      return new Intl.NumberFormat(undefined, {
-        style: "currency",
-        currency: "DKK"
-      }).format(Number(value || 0));
-    }
-
-    function escapeHtml(value) {
-      return String(value ?? "")
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
-    }
-
-    async function getCurrentUser() {
-      const { data, error } = await supabaseClient.auth.getUser();
-      if (error) throw error;
-      return data.user;
-    }
-
-    async function refreshDashboard() {
-      const [
-        expensesRes,
-        incomeRes,
-        goalsRes,
-        contributionsRes
-      ] = await Promise.all([
-        supabaseClient.from("expenses").select("id,title,amount,date,paid_by,category,note").order("date", { ascending: false }),
-        supabaseClient.from("income").select("id,amount,date,source,received_by,note").order("date", { ascending: false }),
-        supabaseClient.from("savings_goals").select("id,name,target_amount"),
-        supabaseClient.from("savings_contributions").select("id,goal_id,amount,date,created_by,note").order("date", { ascending: false })
-      ]);
-
-      if (expensesRes.error) throw expensesRes.error;
-      if (incomeRes.error) throw incomeRes.error;
-      if (goalsRes.error) throw goalsRes.error;
-      if (contributionsRes.error) throw contributionsRes.error;
-
-      const expenses = expensesRes.data || [];
-      const income = incomeRes.data || [];
-      const goals = goalsRes.data || [];
-      const contributions = contributionsRes.data || [];
-
-      const totalIncome = income.reduce((sum, row) => sum + Number(row.amount || 0), 0);
-      const totalExpenses = expenses.reduce((sum, row) => sum + Number(row.amount || 0), 0);
-      const totalSaved = contributions.reduce((sum, row) => sum + Number(row.amount || 0), 0);
-      const startingBalance = 0;
-      const trackedBalance = startingBalance + totalIncome - totalExpenses - totalSaved;
-
-      totalIncomeEl.textContent = money(totalIncome);
-      totalExpensesEl.textContent = money(totalExpenses);
-      totalSavedEl.textContent = money(totalSaved);
-      trackedBalanceEl.textContent = money(trackedBalance);
-
-      const goalsMap = Object.fromEntries(goals.map(goal => [goal.id, goal]));
-      const savedByGoal = {};
-      contributions.forEach(row => {
-        savedByGoal[row.goal_id] = (savedByGoal[row.goal_id] || 0) + Number(row.amount || 0);
-      });
-
-      expensesBody.innerHTML = expenses.slice(0, 10).map(row => `
-        <tr>
-          <td>${escapeHtml(row.title)}</td>
-          <td>${money(row.amount)}</td>
-          <td>${escapeHtml(row.date)}</td>
-          <td>${escapeHtml(row.paid_by)}</td>
-          <td>
-            <div class="actions">
-              <button type="button" class="secondary" onclick="openEditExpense('${row.id}')">Edit</button>
-              <button type="button" class="danger" onclick="deleteExpense('${row.id}')">Delete</button>
-            </div>
-          </td>
-        </tr>
-      `).join("");
-
-      incomeBody.innerHTML = income.slice(0, 10).map(row => `
-        <tr>
-          <td>${money(row.amount)}</td>
-          <td>${escapeHtml(row.date)}</td>
-          <td>${escapeHtml(row.source)}</td>
-          <td>${escapeHtml(row.received_by)}</td>
-          <td>
-            <div class="actions">
-              <button type="button" class="secondary" onclick="openEditIncome('${row.id}')">Edit</button>
-              <button type="button" class="danger" onclick="deleteIncome('${row.id}')">Delete</button>
-            </div>
-          </td>
-        </tr>
-      `).join("");
-
-      savingsBody.innerHTML = contributions.slice(0, 10).map(row => `
-        <tr>
-          <td>${escapeHtml(goalsMap[row.goal_id]?.name || "Unknown goal")}</td>
-          <td>${money(row.amount)}</td>
-          <td>${escapeHtml(row.date)}</td>
-          <td>${escapeHtml(row.created_by)}</td>
-          <td>
-            <div class="actions">
-              <button type="button" class="secondary" onclick="openEditSavings('${row.id}')">Edit</button>
-              <button type="button" class="danger" onclick="deleteSavings('${row.id}')">Delete</button>
-            </div>
-          </td>
-        </tr>
-      `).join("");
-
-      goalsBody.innerHTML = goals.map(goal => `
-        <tr>
-          <td>${escapeHtml(goal.name)}</td>
-          <td>${money(goal.target_amount)}</td>
-          <td>${money(savedByGoal[goal.id] || 0)}</td>
-        </tr>
-      `).join("");
-
-      goalSelect.innerHTML =
-        '<option value="">Choose goal</option>' +
-        goals.map(goal => `<option value="${goal.id}">${escapeHtml(goal.name)}</option>`).join("");
-    }
-
-    async function showAppIfLoggedIn() {
-      const user = await getCurrentUser();
-      const loggedIn = !!user;
-
-      authSection.classList.toggle("hidden", loggedIn);
-      appSection.classList.toggle("hidden", !loggedIn);
-      logoutBtn.classList.toggle("hidden", !loggedIn);
-
-      if (loggedIn) {
-        await refreshDashboard();
-      }
-    }
-
-    async function login() {
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value;
-
-      authMessage.textContent = "Logging in...";
-
-      const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-
-      if (error) {
-        authMessage.textContent = error.message;
-        return;
-      }
-
-      authMessage.textContent = "Logged in.";
-      await showAppIfLoggedIn();
-    }
-
-    async function signup() {
-      const email = document.getElementById("email").value.trim();
-      const password = document.getElementById("password").value;
-
-      const { error } = await supabaseClient.auth.signUp({ email, password });
-      authMessage.textContent = error ? error.message : "Signed up. Check your email if confirmation is enabled.";
-    }
-
-    async function logout() {
-      await supabaseClient.auth.signOut();
-      authMessage.textContent = "Logged out.";
-      await showAppIfLoggedIn();
-    }
-
-    async function addExpense(e) {
-      e.preventDefault();
-
-      const form = new FormData(e.target);
-      const user = await getCurrentUser();
-      const payload = Object.fromEntries(form.entries());
-
-      payload.user_id = user?.id || null;
-      payload.amount = Number(payload.amount);
-
-      const { error } = await supabaseClient.from("expenses").insert(payload);
-      if (error) {
-        alert(error.message);
-        return;
-      }
-
-      e.target.reset();
-      await refreshDashboard();
-    }
-
-    async function addIncome(e) {
-      e.preventDefault();
-
-      const form = new FormData(e.target);
-      const user = await getCurrentUser();
-      const payload = Object.fromEntries(form.entries());
-
-      payload.user_id = user?.id || null;
-      payload.amount = Number(payload.amount);
-
-      const { error } = await supabaseClient.from("income").insert(payload);
-      if (error) {
-        alert(error.message);
-        return;
-      }
-
-      e.target.reset();
-      await refreshDashboard();
-    }
-
-    async function addSavings(e) {
-      e.preventDefault();
-
-      const form = new FormData(e.target);
-      const payload = Object.fromEntries(form.entries());
-
-      payload.amount = Number(payload.amount);
-
-      const { error } = await supabaseClient.from("savings_contributions").insert(payload);
-      if (error) {
-        alert(error.message);
-        return;
-      }
-
-      e.target.reset();
-      await refreshDashboard();
-    }
-
-    function closeEdit() {
-      editSection.classList.add("hidden");
-      editForm.innerHTML = "";
-    }
-
-    async function openEditExpense(id) {
-      const { data, error } = await supabaseClient.from("expenses").select("*").eq("id", id).single();
-      if (error) {
-        alert(error.message);
-        return;
-      }
-
-      editTitle.textContent = "Edit expense";
-      editForm.innerHTML = `
-        <input name="title" placeholder="Title" value="${escapeHtml(data.title)}" required />
-        <input name="amount" type="number" step="0.01" value="${escapeHtml(data.amount)}" required />
-        <input name="date" type="date" value="${escapeHtml(data.date)}" required />
-        <input name="category" placeholder="Category" value="${escapeHtml(data.category)}" />
-        <input name="paid_by" placeholder="Paid by" value="${escapeHtml(data.paid_by)}" />
-        <input name="note" placeholder="Note" value="${escapeHtml(data.note)}" />
-        <button type="submit">Save changes</button>
-      `;
-
-      editForm.onsubmit = async (e) => {
-        e.preventDefault();
-        const form = new FormData(editForm);
-        const payload = Object.fromEntries(form.entries());
-        payload.amount = Number(payload.amount);
-
-        const { error: updateError } = await supabaseClient.from("expenses").update(payload).eq("id", id);
-        if (updateError) {
-          alert(updateError.message);
-          return;
-        }
-
-        closeEdit();
-        await refreshDashboard();
-      };
-
-      editSection.classList.remove("hidden");
-      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
-    }
-
-    async function openEditIncome(id) {
-      const { data, error } = await supabaseClient.from("income").select("*").eq("id", id).single();
-      if (error) {
-        alert(error.message);
-        return;
-      }
-
-      editTitle.textContent = "Edit income";
-      editForm.innerHTML = `
-        <input name="amount" type="number" step="0.01" value="${escapeHtml(data.amount)}" required />
-        <input name="date" type="date" value="${escapeHtml(data.date)}" required />
-        <input name="source" placeholder="Source" value="${escapeHtml(data.source)}" />
-        <input name="received_by" placeholder="Received by" value="${escapeHtml(data.received_by)}" />
-        <input name="note" placeholder="Note" value="${escapeHtml(data.note)}" />
-        <button type="submit">Save changes</button>
-      `;
-
-      editForm.onsubmit = async (e) => {
-        e.preventDefault();
-        const form = new FormData(editForm);
-        const payload = Object.fromEntries(form.entries());
-        payload.amount = Number(payload.amount);
-
-        const { error: updateError } = await supabaseClient.from("income").update(payload).eq("id", id);
-        if (updateError) {
-          alert(updateError.message);
-          return;
-        }
-
-        closeEdit();
-        await refreshDashboard();
-      };
-
-      editSection.classList.remove("hidden");
-      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
-    }
-
-    async function openEditSavings(id) {
-      const [contributionRes, goalsRes] = await Promise.all([
-        supabaseClient.from("savings_contributions").select("*").eq("id", id).single(),
-        supabaseClient.from("savings_goals").select("id,name")
-      ]);
-
-      if (contributionRes.error) {
-        alert(contributionRes.error.message);
-        return;
-      }
-      if (goalsRes.error) {
-        alert(goalsRes.error.message);
-        return;
-      }
-
-      const data = contributionRes.data;
-      const goals = goalsRes.data || [];
-
-      editTitle.textContent = "Edit savings contribution";
-      editForm.innerHTML = `
-        <select name="goal_id" required>
-          ${goals.map(goal => `
-            <option value="${goal.id}" ${goal.id === data.goal_id ? "selected" : ""}>
-              ${escapeHtml(goal.name)}
-            </option>
-          `).join("")}
-        </select>
-        <input name="amount" type="number" step="0.01" value="${escapeHtml(data.amount)}" required />
-        <input name="date" type="date" value="${escapeHtml(data.date)}" required />
-        <input name="created_by" placeholder="Created by" value="${escapeHtml(data.created_by)}" />
-        <input name="note" placeholder="Note" value="${escapeHtml(data.note)}" />
-        <button type="submit">Save changes</button>
-      `;
-
-      editForm.onsubmit = async (e) => {
-        e.preventDefault();
-        const form = new FormData(editForm);
-        const payload = Object.fromEntries(form.entries());
-        payload.amount = Number(payload.amount);
-
-        const { error: updateError } = await supabaseClient.from("savings_contributions").update(payload).eq("id", id);
-        if (updateError) {
-          alert(updateError.message);
-          return;
-        }
-
-        closeEdit();
-        await refreshDashboard();
-      };
-
-      editSection.classList.remove("hidden");
-      window.scrollTo({ top: document.body.scrollHeight, behavior: "smooth" });
-    }
-
-    async function deleteExpense(id) {
-      if (!confirm("Delete this expense?")) return;
-      const { error } = await supabaseClient.from("expenses").delete().eq("id", id);
-      if (error) {
-        alert(error.message);
-        return;
-      }
-      await refreshDashboard();
-    }
-
-    async function deleteIncome(id) {
-      if (!confirm("Delete this income?")) return;
-      const { error } = await supabaseClient.from("income").delete().eq("id", id);
-      if (error) {
-        alert(error.message);
-        return;
-      }
-      await refreshDashboard();
-    }
-
-    async function deleteSavings(id) {
-      if (!confirm("Delete this savings contribution?")) return;
-      const { error } = await supabaseClient.from("savings_contributions").delete().eq("id", id);
-      if (error) {
-        alert(error.message);
-        return;
-      }
-      await refreshDashboard();
-    }
-
-    document.getElementById("loginBtn").addEventListener("click", login);
-    document.getElementById("signupBtn").addEventListener("click", signup);
-    document.getElementById("expenseForm").addEventListener("submit", addExpense);
-    document.getElementById("incomeForm").addEventListener("submit", addIncome);
-    document.getElementById("savingsForm").addEventListener("submit", addSavings);
-    logoutBtn.addEventListener("click", logout);
-    cancelEditBtn.addEventListener("click", closeEdit);
-
-    window.openEditExpense = openEditExpense;
-    window.openEditIncome = openEditIncome;
-    window.openEditSavings = openEditSavings;
-    window.deleteExpense = deleteExpense;
-    window.deleteIncome = deleteIncome;
-    window.deleteSavings = deleteSavings;
-
-    async function initApp() {
-      try {
-        await showAppIfLoggedIn();
-      } catch (err) {
-        console.error(err);
-      }
-    }
-
-    supabaseClient.auth.onAuthStateChange(() => {
-      showAppIfLoggedIn().catch(console.error);
-    });
-
-    initApp();
-  </script>
+  <!-- JS -->
+  <script src="app.js"></script>
 </body>
 </html>
