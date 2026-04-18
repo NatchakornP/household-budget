@@ -19,6 +19,11 @@ const savingsBody = document.getElementById("savingsBody");
 const goalsBody = document.getElementById("goalsBody");
 const goalSelect = document.getElementById("goalSelect");
 
+const editSection = document.getElementById("editSection");
+const editTitle = document.getElementById("editTitle");
+const editForm = document.getElementById("editForm");
+
+
 function money(value) {
   return new Intl.NumberFormat(undefined, {
     style: "currency",
