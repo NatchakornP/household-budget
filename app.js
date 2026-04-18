@@ -112,7 +112,7 @@ async function refreshDashboard() {
 
     supabaseClient
       .from("savings_contributions")
-      .select("id,goal_id,amount,date,created_by")
+      .select("id,goal_id,amount,date,created_by,note")
       .order("date", { ascending: false })
   ]);
 
@@ -169,14 +169,16 @@ async function refreshDashboard() {
 `).join("");
 
   savingsBody.innerHTML = savings.slice(0, 5).map(row => `
-    <tr>
-      <td>${escapeHtml(goalsMap[row.goal_id]?.name || "Unknown")}</td>
-      <td>${money(row.amount)}</td>
-      <td>
-        <button type="button" onclick="deleteSavings('${row.id}')">Delete</button>
-      </td>
-    </tr>
-  `).join("");
+  <tr>
+    <td>${escapeHtml(goalsMap[row.goal_id]?.name || "Unknown")}</td>
+    <td>${money(row.amount)}</td>
+    <td>${escapeHtml(row.date)}</td>
+    <td>${escapeHtml(row.created_by)}</td>
+    <td>
+      <button type="button" onclick="deleteSavings('${row.id}')">Delete</button>
+    </td>
+  </tr>
+`).join("");
 
   goalsBody.innerHTML = goals.map(goal => `
     <tr>
@@ -244,6 +246,8 @@ async function addSavings(e) {
   const payload = Object.fromEntries(form.entries());
 
   payload.amount = Number(payload.amount);
+  payload.created_by = payload.created_by || null;
+  payload.note = payload.note || null;
 
   const { error } = await supabaseClient.from("savings_contributions").insert(payload);
   if (error) {
