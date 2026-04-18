@@ -99,13 +99,16 @@
       <section class="feature-section">
 
         <div class="card">
-          <h3>Add Income</h3>
-          <form id="incomeForm">
-            <input name="amount" type="number" placeholder="Amount" required />
-            <input name="date" type="date" required />
-            <button type="submit">Save</button>
-          </form>
-        </div>
+  <h3>Add Income</h3>
+  <form id="incomeForm">
+    <input name="amount" type="number" step="0.01" placeholder="Amount" required />
+    <input name="date" type="date" required />
+    <input name="source" placeholder="Source" />
+    <input name="received_by" placeholder="Received by" />
+    <input name="note" placeholder="Note" />
+    <button type="submit">Save</button>
+  </form>
+</div>
 
         <div class="card">
           <h3>Recent Income</h3>
