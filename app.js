@@ -98,7 +98,7 @@ async function refreshDashboard() {
   const [expensesRes, incomeRes, goalsRes, savingsRes] = await Promise.all([
     supabaseClient
       .from("expenses")
-      .select("id,title,amount,date,paid_by")
+      .select("id,title,amount,date,paid_by,category,note")
       .order("date", { ascending: false }),
 
     supabaseClient
@@ -150,6 +150,7 @@ async function refreshDashboard() {
       <td>${escapeHtml(row.title)}</td>
       <td>${money(row.amount)}</td>
       <td>${escapeHtml(row.date)}</td>
+      <td>${escapeHtml(row.paid_by)}</td>
       <td>
         <button type="button" onclick="deleteExpense('${row.id}')">Delete</button>
       </td>
@@ -198,6 +199,9 @@ async function addExpense(e) {
 
   payload.user_id = user?.id || null;
   payload.amount = Number(payload.amount);
+  payload.paid_by = payload.paid_by || null;
+  payload.category = payload.category || null;
+  payload.note = payload.note || null;
 
   const { error } = await supabaseClient.from("expenses").insert(payload);
   if (error) {
