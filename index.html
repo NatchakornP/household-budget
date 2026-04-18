@@ -195,7 +195,7 @@
     const SUPABASE_URL = "https://dbqprjqpjnxxsdsnazag.supabase.co";
     const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRicXByanFwam54eHNkc25hemFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MTM4MDksImV4cCI6MjA5MjA4OTgwOX0.i2vB5P0_6DMkqVmD7MjuTpFbXa6Fxjg6xEbZSiG-WYY";
 
-    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
     const authSection = document.getElementById("authSection");
     const appSection = document.getElementById("appSection");
@@ -215,16 +215,16 @@
     }
 
     async function getCurrentUser() {
-      const { data } = await supabase.auth.getUser();
+      const { data } = await supabaseClient.auth.getUser();
       return data.user;
     }
 
     async function refreshDashboard() {
       const [{ data: expenses }, { data: income }, { data: goals }, { data: contributions }] = await Promise.all([
-        supabase.from("expenses").select("id,title,amount,date,paid_by").order("date", { ascending: false }),
-        supabase.from("income").select("id,amount"),
-        supabase.from("savings_goals").select("id,name,target_amount"),
-        supabase.from("savings_contributions").select("id,goal_id,amount")
+        supabaseClient.from("expenses").select("id,title,amount,date,paid_by").order("date", { ascending: false }),
+        supabaseClient.from("income").select("id,amount"),
+        supabaseClient.from("savings_goals").select("id,name,target_amount"),
+        supabaseClient.from("savings_contributions").select("id,goal_id,amount")
       ]);
 
       const totalIncome = (income || []).reduce((sum, row) => sum + Number(row.amount || 0), 0);
@@ -280,7 +280,7 @@
       e.preventDefault();
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
-      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
       authMessage.textContent = error ? error.message : "Logged in.";
       await showAppIfLoggedIn();
     });
@@ -288,12 +288,12 @@
     document.getElementById("signupBtn").addEventListener("click", async () => {
       const email = document.getElementById("email").value;
       const password = document.getElementById("password").value;
-      const { error } = await supabase.auth.signUp({ email, password });
+      const { error } = await supabaseClient.auth.signUp({ email, password });
       authMessage.textContent = error ? error.message : "Sign-up sent. Check your email if confirmation is enabled.";
     });
 
     logoutBtn.addEventListener("click", async () => {
-      await supabase.auth.signOut();
+      await supabaseClient.auth.signOut();
       await showAppIfLoggedIn();
     });
 
@@ -304,7 +304,7 @@
       const payload = Object.fromEntries(form.entries());
       payload.user_id = user?.id || null;
       payload.amount = Number(payload.amount);
-      const { error } = await supabase.from("expenses").insert(payload);
+      const { error } = await supabaseClient.from("expenses").insert(payload);
       if (error) return alert(error.message);
       e.target.reset();
       await refreshDashboard();
@@ -317,7 +317,7 @@
       const payload = Object.fromEntries(form.entries());
       payload.user_id = user?.id || null;
       payload.amount = Number(payload.amount);
-      const { error } = await supabase.from("income").insert(payload);
+      const { error } = await supabaseClient.from("income").insert(payload);
       if (error) return alert(error.message);
       e.target.reset();
       await refreshDashboard();
@@ -328,13 +328,13 @@
       const form = new FormData(e.target);
       const payload = Object.fromEntries(form.entries());
       payload.amount = Number(payload.amount);
-      const { error } = await supabase.from("savings_contributions").insert(payload);
+      const { error } = await supabaseClient.from("savings_contributions").insert(payload);
       if (error) return alert(error.message);
       e.target.reset();
       await refreshDashboard();
     });
 
-    supabase.auth.onAuthStateChange(async () => {
+    supabaseClient.auth.onAuthStateChange(async () => {
       await showAppIfLoggedIn();
     });
 
