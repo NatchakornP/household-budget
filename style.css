@@ -43,9 +43,14 @@ p {
 .row {
   display: flex;
   gap: 12px;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
   margin-bottom: 16px;
+}
+
+.row button {
+  width: auto;
+  min-width: 96px;
 }
 
 .card {
@@ -86,13 +91,31 @@ form {
 input,
 select,
 button {
-  width: 100%;
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 10px;
   font: inherit;
   background: white;
 }
+
+input,
+select,
+form button {
+  width: 100%;
+}
+
+input[type="number"] {
+  appearance: textfield;
+  -moz-appearance: textfield;
+}
+
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  appearance: none;
+  -webkit-appearance: none;
+  margin: 0;
+}
+
 
 button {
   background: var(--accent);
@@ -121,7 +144,6 @@ table {
   width: 100%;
   border-collapse: collapse;
   margin-top: 8px;
-  table-layout: fixed;
 }
 
 th,
@@ -134,16 +156,98 @@ td {
   word-break: break-word;
 }
 
+th:last-child,
+td:last-child {
+  width: 160px;
+}
+
+
 .actions {
   display: flex;
-  flex-direction: column;
   gap: 6px;
+  align-items: center;
 }
 
 .actions button {
-  width: 100%;
-  padding: 8px 10px;
+  width: auto;
+  padding: 6px 8px;
+  font-size: 13px;
+  white-space: nowrap;
 }
+
+.modal {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(31, 41, 55, 0.45);
+}
+
+.modal.hidden {
+  display: none;
+}
+
+.modal-card {
+  width: min(100%, 520px);
+  max-height: 90vh;
+  overflow: auto;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 20px 50px rgba(0, 0, 0, 0.18);
+}
+
+.modal-header {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+
+.modal-header h2 {
+  margin: 0;
+}
+
+.modal-header button {
+  width: auto;
+}
+
+.toast {
+  position: fixed;
+  top: 16px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 20;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--border);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.12);
+  font-weight: 600;
+}
+
+.toast.success-add {
+  background: #dcfce7;
+  color: #166534;
+  border-color: #86efac;
+}
+
+.toast.success-edit {
+  background: #dbeafe;
+  color: #1e40af;
+  border-color: #93c5fd;
+}
+
+.toast.success-delete {
+  background: #fee2e2;
+  color: #991b1b;
+  border-color: #fca5a5;
+}
+
 
 @media (max-width: 768px) {
   .wrap {
