@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Shared Finance Starter</title>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg: #f7f7fb;
+      --card: #ffffff;
+      --text: #1f2937;
+      --muted: #6b7280;
+      --border: #e5e7eb;
+      --accent: #2563eb;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: Inter, Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+    .wrap {
+      max-width: 960px;
+      margin: 0 auto;
+      padding: 24px;
+    }
+    h1, h2 { margin: 0 0 12px; }
+    .muted { color: var(--muted); }
+    .grid {
+      display: grid;
+      gap: 16px;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 16px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.04);
+    }
+    .hidden { display: none; }
+    form {
+      display: grid;
+      gap: 10px;
+    }
+    input, select, button {
+      padding: 10px 12px;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      font: inherit;
+    }
+    button {
+      background: var(--accent);
+      color: white;
+      border: none;
+      cursor: pointer;
+    }
+    button.secondary {
+      background: white;
+      color: var(--text);
+      border: 1px solid var(--border);
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 8px;
+    }
+    th, td {
+      text-align: left;
+      padding: 10px 8px;
+      border-bottom: 1px solid var(--border);
+      font-size: 14px;
+    }
+    .row {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+      align-items: center;
+      justify-content: space-between;
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="row" style="margin-bottom: 16px;">
+      <div>
+        <h1>Shared Finance</h1>
+        <div class="muted">Starter version: login, expenses, income, savings, dashboard totals</div>
+      </div>
+      <button id="logoutBtn" class="secondary hidden">Log out</button>
+    </div>
+
+    <section id="authSection" class="card">
+      <h2>Sign up / Log in</h2>
+      <p class="muted">Use the same page for both. If the account does not exist, sign up first.</p>
+      <form id="authForm">
+        <input id="email" type="email" placeholder="Email" required />
+        <input id="password" type="password" placeholder="Password" required />
+        <div class="row">
+          <button type="submit" data-mode="login">Log in</button>
+          <button type="button" id="signupBtn" class="secondary">Sign up</button>
+        </div>
+      </form>
+      <p id="authMessage" class="muted"></p>
+    </section>
+
+    <section id="appSection" class="hidden">
+      <div class="grid" style="margin-bottom: 16px;">
+        <div class="card">
+          <h2>Tracked balance</h2>
+          <div id="trackedBalance">0</div>
+        </div>
+        <div class="card">
+          <h2>Total income</h2>
+          <div id="totalIncome">0</div>
+        </div>
+        <div class="card">
+          <h2>Total expenses</h2>
+          <div id="totalExpenses">0</div>
+        </div>
+        <div class="card">
+          <h2>Total saved</h2>
+          <div id="totalSaved">0</div>
+        </div>
+      </div>
+
+      <div class="grid">
+        <div class="card">
+          <h2>Add expense</h2>
+          <form id="expenseForm">
+            <input name="title" placeholder="Title" required />
+            <input name="amount" type="number" step="0.01" placeholder="Amount" required />
+            <input name="date" type="date" required />
+            <input name="category" placeholder="Category" />
+            <input name="paid_by" placeholder="Paid by (Chompoo or Mads)" />
+            <input name="note" placeholder="Note" />
+            <button type="submit">Save expense</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2>Add income</h2>
+          <form id="incomeForm">
+            <input name="amount" type="number" step="0.01" placeholder="Amount" required />
+            <input name="date" type="date" required />
+            <input name="source" placeholder="Source (salary, bonus...)" />
+            <input name="received_by" placeholder="Received by (Chompoo or Mads)" />
+            <input name="note" placeholder="Note" />
+            <button type="submit">Save income</button>
+          </form>
+        </div>
+
+        <div class="card">
+          <h2>Add savings contribution</h2>
+          <form id="savingsForm">
+            <select name="goal_id" id="goalSelect" required>
+              <option value="">Choose goal</option>
+            </select>
+            <input name="amount" type="number" step="0.01" placeholder="Amount" required />
+            <input name="date" type="date" required />
+            <input name="created_by" placeholder="Created by (Chompoo or Mads)" />
+            <input name="note" placeholder="Note" />
+            <button type="submit">Save contribution</button>
+          </form>
+        </div>
+      </div>
+
+      <div class="grid" style="margin-top: 16px;">
+        <div class="card">
+          <h2>Recent expenses</h2>
+          <table>
+            <thead>
+              <tr><th>Title</th><th>Amount</th><th>Date</th><th>Paid by</th></tr>
+            </thead>
+            <tbody id="expensesBody"></tbody>
+          </table>
+        </div>
+
+        <div class="card">
+          <h2>Savings goals</h2>
+          <table>
+            <thead>
+              <tr><th>Goal</th><th>Target</th><th>Saved</th></tr>
+            </thead>
+            <tbody id="goalsBody"></tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+  </div>
+
+  <script>
+    const SUPABASE_URL = "https://dbqprjqpjnxxsdsnazag.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRicXByanFwam54eHNkc25hemFnIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzY1MTM4MDksImV4cCI6MjA5MjA4OTgwOX0.i2vB5P0_6DMkqVmD7MjuTpFbXa6Fxjg6xEbZSiG-WYY";
+
+    const supabase = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
+
+    const authSection = document.getElementById("authSection");
+    const appSection = document.getElementById("appSection");
+    const authMessage = document.getElementById("authMessage");
+    const logoutBtn = document.getElementById("logoutBtn");
+
+    const trackedBalanceEl = document.getElementById("trackedBalance");
+    const totalIncomeEl = document.getElementById("totalIncome");
+    const totalExpensesEl = document.getElementById("totalExpenses");
+    const totalSavedEl = document.getElementById("totalSaved");
+    const expensesBody = document.getElementById("expensesBody");
+    const goalsBody = document.getElementById("goalsBody");
+    const goalSelect = document.getElementById("goalSelect");
+
+    function money(value) {
+      return new Intl.NumberFormat(undefined, { style: "currency", currency: "DKK" }).format(Number(value || 0));
+    }
+
+    async function getCurrentUser() {
+      const { data } = await supabase.auth.getUser();
+      return data.user;
+    }
+
+    async function refreshDashboard() {
+      const [{ data: expenses }, { data: income }, { data: goals }, { data: contributions }] = await Promise.all([
+        supabase.from("expenses").select("id,title,amount,date,paid_by").order("date", { ascending: false }),
+        supabase.from("income").select("id,amount"),
+        supabase.from("savings_goals").select("id,name,target_amount"),
+        supabase.from("savings_contributions").select("id,goal_id,amount")
+      ]);
+
+      const totalIncome = (income || []).reduce((sum, row) => sum + Number(row.amount || 0), 0);
+      const totalExpenses = (expenses || []).reduce((sum, row) => sum + Number(row.amount || 0), 0);
+      const totalSaved = (contributions || []).reduce((sum, row) => sum + Number(row.amount || 0), 0);
+      const startingBalance = 0; // Change this later if you add a balance_settings table.
+      const trackedBalance = startingBalance + totalIncome - totalExpenses - totalSaved;
+
+      totalIncomeEl.textContent = money(totalIncome);
+      totalExpensesEl.textContent = money(totalExpenses);
+      totalSavedEl.textContent = money(totalSaved);
+      trackedBalanceEl.textContent = money(trackedBalance);
+
+      expensesBody.innerHTML = (expenses || []).slice(0, 10).map(row => `
+        <tr>
+          <td>${row.title || ""}</td>
+          <td>${money(row.amount)}</td>
+          <td>${row.date || ""}</td>
+          <td>${row.paid_by || ""}</td>
+        </tr>
+      `).join("");
+
+      const savedByGoal = {};
+      (contributions || []).forEach(row => {
+        savedByGoal[row.goal_id] = (savedByGoal[row.goal_id] || 0) + Number(row.amount || 0);
+      });
+
+      goalsBody.innerHTML = (goals || []).map(goal => `
+        <tr>
+          <td>${goal.name}</td>
+          <td>${money(goal.target_amount)}</td>
+          <td>${money(savedByGoal[goal.id] || 0)}</td>
+        </tr>
+      `).join("");
+
+      goalSelect.innerHTML = '<option value="">Choose goal</option>' + (goals || []).map(goal =>
+        `<option value="${goal.id}">${goal.name}</option>`
+      ).join("");
+    }
+
+    async function showAppIfLoggedIn() {
+      const user = await getCurrentUser();
+      const loggedIn = !!user;
+      authSection.classList.toggle("hidden", loggedIn);
+      appSection.classList.toggle("hidden", !loggedIn);
+      logoutBtn.classList.toggle("hidden", !loggedIn);
+      if (loggedIn) {
+        await refreshDashboard();
+      }
+    }
+
+    document.getElementById("authForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const { error } = await supabase.auth.signInWithPassword({ email, password });
+      authMessage.textContent = error ? error.message : "Logged in.";
+      await showAppIfLoggedIn();
+    });
+
+    document.getElementById("signupBtn").addEventListener("click", async () => {
+      const email = document.getElementById("email").value;
+      const password = document.getElementById("password").value;
+      const { error } = await supabase.auth.signUp({ email, password });
+      authMessage.textContent = error ? error.message : "Sign-up sent. Check your email if confirmation is enabled.";
+    });
+
+    logoutBtn.addEventListener("click", async () => {
+      await supabase.auth.signOut();
+      await showAppIfLoggedIn();
+    });
+
+    document.getElementById("expenseForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const form = new FormData(e.target);
+      const user = await getCurrentUser();
+      const payload = Object.fromEntries(form.entries());
+      payload.user_id = user?.id || null;
+      payload.amount = Number(payload.amount);
+      const { error } = await supabase.from("expenses").insert(payload);
+      if (error) return alert(error.message);
+      e.target.reset();
+      await refreshDashboard();
+    });
+
+    document.getElementById("incomeForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const form = new FormData(e.target);
+      const user = await getCurrentUser();
+      const payload = Object.fromEntries(form.entries());
+      payload.user_id = user?.id || null;
+      payload.amount = Number(payload.amount);
+      const { error } = await supabase.from("income").insert(payload);
+      if (error) return alert(error.message);
+      e.target.reset();
+      await refreshDashboard();
+    });
+
+    document.getElementById("savingsForm").addEventListener("submit", async (e) => {
+      e.preventDefault();
+      const form = new FormData(e.target);
+      const payload = Object.fromEntries(form.entries());
+      payload.amount = Number(payload.amount);
+      const { error } = await supabase.from("savings_contributions").insert(payload);
+      if (error) return alert(error.message);
+      e.target.reset();
+      await refreshDashboard();
+    });
+
+    supabase.auth.onAuthStateChange(async () => {
+      await showAppIfLoggedIn();
+    });
+
+    showAppIfLoggedIn();
+  </script>
+</body>
+</html>
