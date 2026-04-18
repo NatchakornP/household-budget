@@ -64,15 +64,17 @@
 
         <!-- ADD -->
         <div class="card">
-          <h3>Add Expense</h3>
-          <form id="expenseForm">
-            <input name="title" placeholder="Title" required />
-            <input name="amount" type="number" placeholder="Amount" required />
-            <input name="date" type="date" required />
-            <input name="paid_by" placeholder="Paid by" />
-            <button type="submit">Save</button>
-          </form>
-        </div>
+  <h3>Add Expense</h3>
+  <form id="expenseForm">
+    <input name="title" placeholder="Title" required />
+    <input name="amount" type="number" step="0.01" placeholder="Amount" required />
+    <input name="date" type="date" required />
+    <input name="category" placeholder="Category" />
+    <input name="paid_by" placeholder="Paid by" />
+    <input name="note" placeholder="Note" />
+    <button type="submit">Save</button>
+  </form>
+</div>
 
         <!-- LIST -->
         <div class="card">
@@ -83,6 +85,7 @@
                 <th>Title</th>
                 <th>Amount</th>
                 <th>Date</th>
+                <th>Paid by</th>
                 <th>Actions</th>
               </tr>
             </thead>
