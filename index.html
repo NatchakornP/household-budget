@@ -266,27 +266,48 @@
     }
 
     async function showAppIfLoggedIn() {
-      const user = await getCurrentUser();
-      const loggedIn = !!user;
-      authSection.classList.toggle("hidden", loggedIn);
-      appSection.classList.toggle("hidden", !loggedIn);
-      logoutBtn.classList.toggle("hidden", !loggedIn);
-      if (loggedIn) {
-        await refreshDashboard();
-      }
+  try {
+    const user = await getCurrentUser();
+    console.log("current user:", user);
+
+    const loggedIn = !!user;
+    authSection.classList.toggle("hidden", loggedIn);
+    appSection.classList.toggle("hidden", !loggedIn);
+    logoutBtn.classList.toggle("hidden", !loggedIn);
+
+    if (loggedIn) {
+      await refreshDashboard();
     }
-
+  } catch (err) {
+    console.error("showAppIfLoggedIn error:", err);
+    throw err;
+  }
+}
+//login
     document.getElementById("authForm").addEventListener("submit", async (e) => {
-      e.preventDefault();
-      const email = document.getElementById("email").value;
-      const password = document.getElementById("password").value;
-      const { error } = await supabaseClient.auth.signInWithPassword({ email, password });
-      authMessage.textContent = error ? error.message : "Logged in.";
-      await showAppIfLoggedIn();
-    });
+  e.preventDefault();
 
+  const email = document.getElementById("email").value.trim();
+  const password = document.getElementById("password").value;
+
+  authMessage.textContent = "Logging in...";
+
+  const { data, error } = await supabaseClient.auth.signInWithPassword({ email, password });
+
+  console.log("login data:", data);
+  console.log("login error:", error);
+
+  if (error) {
+    authMessage.textContent = error.message;
+    return;
+  }
+
+  authMessage.textContent = "Logged in.";
+  await showAppIfLoggedIn();
+});
+//signup
     document.getElementById("signupBtn").addEventListener("click", async () => {
-      const email = document.getElementById("email").value;
+      const email = document.getElementById("email").value.trim();
       const password = document.getElementById("password").value;
       const { error } = await supabaseClient.auth.signUp({ email, password });
       authMessage.textContent = error ? error.message : "Sign-up sent. Check your email if confirmation is enabled.";
@@ -334,11 +355,23 @@
       await refreshDashboard();
     });
 
-    supabaseClient.auth.onAuthStateChange(async () => {
-      await showAppIfLoggedIn();
-    });
+async function initApp() {
+  try {
+    await showAppIfLoggedIn();
+  } catch (err) {
+    console.error("initApp error:", err);
+    authMessage.textContent = "Something went wrong while loading the app.";
+  }
+}
 
-    showAppIfLoggedIn();
+supabaseClient.auth.onAuthStateChange(() => {
+  showAppIfLoggedIn().catch(err => {
+    console.error("auth state change error:", err);
+    authMessage.textContent = "Something went wrong after login.";
+  });
+});
+
+initApp();
   </script>
 </body>
 </html>
