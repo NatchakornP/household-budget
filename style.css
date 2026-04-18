@@ -145,7 +145,7 @@ th, td {
 }
 
 button.danger {
-  background: var(--danger);
+  background: var(--danger) !important;
   color: white;
 }
 
