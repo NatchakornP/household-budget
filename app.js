@@ -302,6 +302,57 @@ async function deleteSavings(id) {
   await refreshDashboard();
 }
 
+async function openEditIncome(id) {
+  const { data, error } = await supabaseClient
+    .from("income")
+    .select("*")
+    .eq("id", id)
+    .single();
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  editTitle.textContent = "Income details";
+
+  editForm.innerHTML = `
+    <input name="amount" type="number" step="0.01" value="${data.amount}" required />
+    <input name="date" type="date" value="${data.date}" required />
+    <input name="source" value="${data.source || ""}" placeholder="Source" />
+    <input name="received_by" value="${data.received_by || ""}" placeholder="Received by" />
+    <input name="note" value="${data.note || ""}" placeholder="Note" />
+    <button type="submit">Save changes</button>
+  `;
+
+  editForm.onsubmit = async (e) => {
+    e.preventDefault();
+
+    const form = new FormData(editForm);
+    const payload = Object.fromEntries(form.entries());
+
+    payload.amount = Number(payload.amount);
+    payload.source = payload.source || null;
+    payload.received_by = payload.received_by || null;
+    payload.note = payload.note || null;
+
+    const { error: updateError } = await supabaseClient
+      .from("income")
+      .update(payload)
+      .eq("id", id);
+
+    if (updateError) {
+      alert(updateError.message);
+      return;
+    }
+
+    editSection.classList.add("hidden");
+    await refreshDashboard();
+  };
+
+  editSection.classList.remove("hidden");
+}
+
 document.getElementById("loginBtn").addEventListener("click", login);
 document.getElementById("signupBtn").addEventListener("click", signup);
 document.getElementById("expenseForm").addEventListener("submit", addExpense);
