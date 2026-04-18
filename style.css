@@ -116,7 +116,6 @@ input[type="number"]::-webkit-inner-spin-button {
   margin: 0;
 }
 
-
 button {
   background: var(--accent);
   color: white;
@@ -140,6 +139,21 @@ button.danger:hover {
   background: #b91c1c;
 }
 
+#newCategoryBox {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr auto;
+}
+
+#newCategoryBox.hidden {
+  display: none;
+}
+
+#saveCategoryBtn {
+  width: auto;
+  white-space: nowrap;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -160,7 +174,6 @@ th:last-child,
 td:last-child {
   width: 160px;
 }
-
 
 .actions {
   display: flex;
@@ -217,6 +230,16 @@ td:last-child {
   width: auto;
 }
 
+.large-modal-card {
+  width: min(100%, 900px);
+}
+
+.table-scroll {
+  max-height: 70vh;
+  overflow: auto;
+}
+
+
 .toast {
   position: fixed;
   top: 16px;
@@ -248,6 +271,26 @@ td:last-child {
   border-color: #fca5a5;
 }
 
+.view-all-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 8px;
+}
+
+.link-button {
+  width: auto;
+  padding: 0;
+  background: transparent;
+  color: var(--muted);
+  border: none;
+  font-size: 14px;
+  text-decoration: underline;
+}
+
+.link-button:hover {
+  color: var(--text);
+}
+
 
 @media (max-width: 768px) {
   .wrap {
@@ -263,5 +306,9 @@ td:last-child {
   .row {
     flex-direction: column;
     align-items: stretch;
+  }
+
+  #newCategoryBox {
+    grid-template-columns: 1fr;
   }
 }
