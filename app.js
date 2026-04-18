@@ -363,6 +363,7 @@ logoutBtn.addEventListener("click", logout);
 window.deleteExpense = deleteExpense;
 window.deleteIncome = deleteIncome;
 window.deleteSavings = deleteSavings;
+window.openEditIncome = openEditIncome;
 
 supabaseClient.auth.onAuthStateChange(() => {
   showAppIfLoggedIn().catch(console.error);
