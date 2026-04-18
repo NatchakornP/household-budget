@@ -102,6 +102,21 @@ button.secondary {
   border: 1px solid var(--border);
 }
 
+.actions button {
+  width: 100%;
+  padding: 8px 10px;
+}
+
+button.danger {
+  background: var(--danger) !important;
+  color: white;
+}
+
+button.danger:hover {
+  opacity: 0.9;
+  background: #b91c1c;
+}
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -137,20 +152,5 @@ th, td {
   display: flex;
   flex-direction: column;
   gap: 6px;
-}
-
-.actions button {
-  width: 100%;
-  padding: 8px 10px;
-}
-
-button.danger {
-  background: var(--danger) !important;
-  color: white;
-}
-
-button.danger:hover {
-  opacity: 0.9;
-  background: #b91c1c;
 }
 }
