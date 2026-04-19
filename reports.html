@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reports | Household Budget</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+
+<body>
+  <div id="toast" class="toast hidden"></div>
+
+  <div class="wrap">
+    <div class="row header-row">
+      <div>
+        <h1>Reports</h1>
+        <p class="muted">Review your household spending</p>
+      </div>
+
+      <a class="secondary-link desktop-action" href="index.html">Dashboard</a>
+      <button id="logoutBtn" class="secondary desktop-action" type="button">Log out</button>
+
+      <button id="mobileMenuBtn" class="secondary mobile-menu-button" type="button">Menu</button>
+
+      <div id="mobileMenu" class="mobile-menu hidden">
+        <a class="secondary-link" href="index.html">Dashboard</a>
+        <button id="mobileLogoutBtn" class="secondary" type="button">Log out</button>
+      </div>
+    </div>
+
+    <section class="card report-summary-card">
+      <div class="report-header">
+        <div>
+          <h2>Monthly Summary</h2>
+          <p class="muted">Overview for the selected month</p>
+        </div>
+
+        <label class="month-filter">
+          <span>Month</span>
+          <input id="reportMonth" type="month" />
+        </label>
+      </div>
+
+      <div class="report-metrics">
+        <div class="report-metric">
+          <p class="muted">Income</p>
+          <h2 id="reportTotalIncome">DKK 0.00</h2>
+        </div>
+
+        <div class="report-metric">
+          <p class="muted">Expenses</p>
+          <h2 id="reportTotalExpenses">DKK 0.00</h2>
+        </div>
+
+        <div class="report-metric">
+          <p class="muted">Saved</p>
+          <h2 id="reportTotalSaved">DKK 0.00</h2>
+        </div>
+
+        <div class="report-metric">
+          <p class="muted">Balance</p>
+          <h2 id="reportBalance">DKK 0.00</h2>
+        </div>
+      </div>
+    </section>
+
+    <section class="report-grid">
+      <section id="reportsSection" class="card">
+        <h2>Expenses by Category</h2>
+        <p class="muted">Total expenses grouped by category</p>
+
+        <table>
+          <thead>
+            <tr>
+              <th>Category</th>
+              <th>Total</th>
+            </tr>
+          </thead>
+          <tbody id="expensesByCategoryBody"></tbody>
+        </table>
+      </section>
+    </section>
+  </div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script src="reports.js"></script>
+</body>
+</html>

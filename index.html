@@ -11,13 +11,22 @@
   <div id="toast" class="toast hidden"></div>
 
   <div class="wrap">
-    <div class="row">
-      <div>
-        <h1>Household Budget</h1>
-        <p class="muted">Track expenses, income, and savings</p>
-      </div>
-      <button id="logoutBtn" class="secondary hidden">Log out</button>
-    </div>
+    <div class="row header-row">
+  <div>
+    <h1>Household Budget</h1>
+    <p class="muted">Track expenses, income, and savings</p>
+  </div>
+
+  <a id="reportsLink" class="secondary-link desktop-action hidden" href="reports.html">Reports</a>
+  <button id="logoutBtn" class="secondary desktop-action hidden">Log out</button>
+
+  <button id="mobileMenuBtn" class="secondary mobile-menu-button hidden" type="button">Menu</button>
+
+  <div id="mobileMenu" class="mobile-menu hidden">
+    <a class="secondary-link" href="reports.html">Reports</a>
+    <button id="mobileLogoutBtn" class="secondary" type="button">Log out</button>
+  </div>
+</div>
 
     <section id="authSection" class="card">
       <h2>Login / Signup</h2>

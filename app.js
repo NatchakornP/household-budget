@@ -7,6 +7,7 @@ const authSection = document.getElementById("authSection");
 const appSection = document.getElementById("appSection");
 const authMessage = document.getElementById("authMessage");
 const logoutBtn = document.getElementById("logoutBtn");
+const reportsLink = document.getElementById("reportsLink");
 const toast = document.getElementById("toast");
 
 const trackedBalanceEl = document.getElementById("trackedBalance");
@@ -40,6 +41,11 @@ const viewAllTitle = document.getElementById("viewAllTitle");
 const viewAllHead = document.getElementById("viewAllHead");
 const viewAllBody = document.getElementById("viewAllBody");
 const closeViewAllBtn = document.getElementById("closeViewAllBtn");
+
+const mobileMenuBtn = document.getElementById("mobileMenuBtn");
+const mobileMenu = document.getElementById("mobileMenu");
+const mobileLogoutBtn = document.getElementById("mobileLogoutBtn");
+
 
 let allExpenses = [];
 let allIncome = [];
@@ -134,6 +140,12 @@ async function showAppIfLoggedIn() {
   authSection.classList.toggle("hidden", loggedIn);
   appSection.classList.toggle("hidden", !loggedIn);
   logoutBtn.classList.toggle("hidden", !loggedIn);
+  reportsLink.classList.toggle("hidden", !loggedIn);
+  mobileMenuBtn.classList.toggle("hidden", !loggedIn);
+
+  if (!loggedIn) {
+    mobileMenu.classList.add("hidden");
+  }
 
   if (loggedIn) {
     await refreshDashboard();
@@ -924,5 +936,12 @@ closeViewAllBtn.addEventListener("click", () => {
 supabaseClient.auth.onAuthStateChange(() => {
   showAppIfLoggedIn().catch(console.error);
 });
+
+mobileMenuBtn.addEventListener("click", () => {
+  mobileMenu.classList.toggle("hidden");
+});
+
+mobileLogoutBtn.addEventListener("click", logout);
+
 
 showAppIfLoggedIn().catch(console.error);
