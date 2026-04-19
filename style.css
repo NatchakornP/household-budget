@@ -311,4 +311,52 @@ td:last-child {
   #newCategoryBox {
     grid-template-columns: 1fr;
   }
+
+    table,
+  thead,
+  tbody,
+  tr,
+  th,
+  td {
+    display: block;
+  }
+
+  thead {
+    display: none;
+  }
+
+  tr {
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 10px;
+    margin-bottom: 10px;
+    background: white;
+  }
+
+  td {
+    display: grid;
+    grid-template-columns: 90px 1fr;
+    gap: 10px;
+    padding: 6px 0;
+    border-bottom: none;
+  }
+
+  td::before {
+    content: attr(data-label);
+    color: var(--muted);
+    font-weight: 600;
+  }
+
+  td:last-child {
+    width: auto;
+  }
+
+  .actions {
+    justify-content: flex-start;
+  }
+
+  .actions button {
+    flex: 1;
+  }
+
 }

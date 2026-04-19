@@ -263,62 +263,62 @@ async function refreshDashboard() {
   });
 
   expensesBody.innerHTML = expenses.slice(0, 5).map((row) => `
-    <tr>
-      <td>${escapeHtml(row.title)}</td>
-      <td>${money(row.amount)}</td>
-      <td>${escapeHtml(row.date)}</td>
-      <td>${escapeHtml(row.paid_by)}</td>
-      <td>
-        <div class="actions">
-          <button type="button" onclick="openEditExpense('${row.id}')">Details</button>
-          <button type="button" class="danger" onclick="deleteExpense('${row.id}')">Delete</button>
-        </div>
-      </td>
-    </tr>
-  `).join("");
+  <tr>
+    <td data-label="Title">${escapeHtml(row.title)}</td>
+    <td data-label="Amount">${money(row.amount)}</td>
+    <td data-label="Date">${escapeHtml(row.date)}</td>
+    <td data-label="Paid by">${escapeHtml(row.paid_by)}</td>
+    <td data-label="Actions">
+      <div class="actions">
+        <button type="button" onclick="openEditExpense('${row.id}')">Details</button>
+        <button type="button" class="danger" onclick="deleteExpense('${row.id}')">Delete</button>
+      </div>
+    </td>
+  </tr>
+`).join("");
 
   incomeBody.innerHTML = income.slice(0, 5).map((row) => `
-    <tr>
-      <td>${money(row.amount)}</td>
-      <td>${escapeHtml(row.date)}</td>
-      <td>${escapeHtml(row.received_by)}</td>
-      <td>
-        <div class="actions">
-          <button type="button" onclick="openEditIncome('${row.id}')">Details</button>
-          <button type="button" class="danger" onclick="deleteIncome('${row.id}')">Delete</button>
-        </div>
-      </td>
-    </tr>
-  `).join("");
+  <tr>
+    <td data-label="Amount">${money(row.amount)}</td>
+    <td data-label="Date">${escapeHtml(row.date)}</td>
+    <td data-label="Received by">${escapeHtml(row.received_by)}</td>
+    <td data-label="Actions">
+      <div class="actions">
+        <button type="button" onclick="openEditIncome('${row.id}')">Details</button>
+        <button type="button" class="danger" onclick="deleteIncome('${row.id}')">Delete</button>
+      </div>
+    </td>
+  </tr>
+`).join("");
 
   savingsBody.innerHTML = savings.slice(0, 5).map((row) => `
-    <tr>
-      <td>${escapeHtml(goalsMap[row.goal_id]?.name || "Unknown")}</td>
-      <td>${money(row.amount)}</td>
-      <td>${escapeHtml(row.date)}</td>
-      <td>${escapeHtml(row.created_by)}</td>
-      <td>
-        <div class="actions">
-          <button type="button" onclick="openEditSavings('${row.id}')">Details</button>
-          <button type="button" class="danger" onclick="deleteSavings('${row.id}')">Delete</button>
-        </div>
-      </td>
-    </tr>
-  `).join("");
+  <tr>
+    <td data-label="Goal">${escapeHtml(goalsMap[row.goal_id]?.name || "Unknown")}</td>
+    <td data-label="Amount">${money(row.amount)}</td>
+    <td data-label="Date">${escapeHtml(row.date)}</td>
+    <td data-label="Created by">${escapeHtml(row.created_by)}</td>
+    <td data-label="Actions">
+      <div class="actions">
+        <button type="button" onclick="openEditSavings('${row.id}')">Details</button>
+        <button type="button" class="danger" onclick="deleteSavings('${row.id}')">Delete</button>
+      </div>
+    </td>
+  </tr>
+`).join("");
 
   goalsBody.innerHTML = goals.map((goal) => `
-    <tr>
-      <td>${escapeHtml(goal.name)}</td>
-      <td>${money(goal.target_amount)}</td>
-      <td>${money(savedByGoal[goal.id] || 0)}</td>
-      <td>
-        <div class="actions">
-          <button type="button" onclick="openEditGoal('${goal.id}')">Details</button>
-          <button type="button" class="danger" onclick="deleteGoal('${goal.id}')">Delete</button>
-        </div>
-      </td>
-    </tr>
-  `).join("");
+  <tr>
+    <td data-label="Goal">${escapeHtml(goal.name)}</td>
+    <td data-label="Target">${money(goal.target_amount)}</td>
+    <td data-label="Saved">${money(savedByGoal[goal.id] || 0)}</td>
+    <td data-label="Actions">
+      <div class="actions">
+        <button type="button" onclick="openEditGoal('${goal.id}')">Details</button>
+        <button type="button" class="danger" onclick="deleteGoal('${goal.id}')">Delete</button>
+      </div>
+    </td>
+  </tr>
+`).join("");
 
   goalSelect.innerHTML =
     '<option value="">Choose goal</option>' +
@@ -500,21 +500,21 @@ function openViewAll(type) {
     `;
 
     viewAllBody.innerHTML = allExpenses.map((row) => `
-      <tr>
-        <td>${escapeHtml(row.title)}</td>
-        <td>${money(row.amount)}</td>
-        <td>${escapeHtml(row.date)}</td>
-        <td>${escapeHtml(row.category)}</td>
-        <td>${escapeHtml(row.paid_by)}</td>
-        <td>${escapeHtml(row.note)}</td>
-        <td>
-          <div class="actions">
-            <button type="button" onclick="openEditExpense('${row.id}')">Details</button>
-            <button type="button" class="danger" onclick="deleteExpense('${row.id}')">Delete</button>
-          </div>
-        </td>
-      </tr>
-    `).join("");
+  <tr>
+    <td data-label="Title">${escapeHtml(row.title)}</td>
+    <td data-label="Amount">${money(row.amount)}</td>
+    <td data-label="Date">${escapeHtml(row.date)}</td>
+    <td data-label="Category">${escapeHtml(row.category)}</td>
+    <td data-label="Paid by">${escapeHtml(row.paid_by)}</td>
+    <td data-label="Note">${escapeHtml(row.note)}</td>
+    <td data-label="Actions">
+      <div class="actions">
+        <button type="button" onclick="openEditExpense('${row.id}')">Details</button>
+        <button type="button" class="danger" onclick="deleteExpense('${row.id}')">Delete</button>
+      </div>
+    </td>
+  </tr>
+`).join("");
   }
 
   if (type === "income") {
@@ -532,20 +532,20 @@ function openViewAll(type) {
     `;
 
     viewAllBody.innerHTML = allIncome.map((row) => `
-      <tr>
-        <td>${money(row.amount)}</td>
-        <td>${escapeHtml(row.date)}</td>
-        <td>${escapeHtml(row.source)}</td>
-        <td>${escapeHtml(row.received_by)}</td>
-        <td>${escapeHtml(row.note)}</td>
-        <td>
-          <div class="actions">
-            <button type="button" onclick="openEditIncome('${row.id}')">Details</button>
-            <button type="button" class="danger" onclick="deleteIncome('${row.id}')">Delete</button>
-          </div>
-        </td>
-      </tr>
-    `).join("");
+  <tr>
+    <td data-label="Amount">${money(row.amount)}</td>
+    <td data-label="Date">${escapeHtml(row.date)}</td>
+    <td data-label="Source">${escapeHtml(row.source)}</td>
+    <td data-label="Received by">${escapeHtml(row.received_by)}</td>
+    <td data-label="Note">${escapeHtml(row.note)}</td>
+    <td data-label="Actions">
+      <div class="actions">
+        <button type="button" onclick="openEditIncome('${row.id}')">Details</button>
+        <button type="button" class="danger" onclick="deleteIncome('${row.id}')">Delete</button>
+      </div>
+    </td>
+  </tr>
+`).join("");
   }
 
   if (type === "savings") {
@@ -563,20 +563,20 @@ function openViewAll(type) {
     `;
 
     viewAllBody.innerHTML = allSavings.map((row) => `
-      <tr>
-        <td>${escapeHtml(allGoalsMap[row.goal_id]?.name || "Unknown")}</td>
-        <td>${money(row.amount)}</td>
-        <td>${escapeHtml(row.date)}</td>
-        <td>${escapeHtml(row.created_by)}</td>
-        <td>${escapeHtml(row.note)}</td>
-        <td>
-          <div class="actions">
-            <button type="button" onclick="openEditSavings('${row.id}')">Details</button>
-            <button type="button" class="danger" onclick="deleteSavings('${row.id}')">Delete</button>
-          </div>
-        </td>
-      </tr>
-    `).join("");
+  <tr>
+    <td data-label="Goal">${escapeHtml(allGoalsMap[row.goal_id]?.name || "Unknown")}</td>
+    <td data-label="Amount">${money(row.amount)}</td>
+    <td data-label="Date">${escapeHtml(row.date)}</td>
+    <td data-label="Created by">${escapeHtml(row.created_by)}</td>
+    <td data-label="Note">${escapeHtml(row.note)}</td>
+    <td data-label="Actions">
+      <div class="actions">
+        <button type="button" onclick="openEditSavings('${row.id}')">Details</button>
+        <button type="button" class="danger" onclick="deleteSavings('${row.id}')">Delete</button>
+      </div>
+    </td>
+  </tr>
+`).join("");
   }
 
   viewAllSection.classList.remove("hidden");
