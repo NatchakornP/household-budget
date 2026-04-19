@@ -63,58 +63,126 @@
         </div>
       </div>
     </section>
-
     <section class="report-grid">
-      <section id="reportsSection" class="card">
-        <h2>Expenses by Category</h2>
-        <p class="muted">Total expenses grouped by category</p>
+    <section class="card">
+  <h2>Money Flow</h2>
+  <p class="muted">Where outgoing money went this month</p>
 
-        <table>
-          <thead>
-            <tr>
-              <th>Category</th>
-              <th>Total</th>
-            </tr>
-          </thead>
-          <tbody id="expensesByCategoryBody"></tbody>
-        </table>
-      </section>
-      <section class="card">
-  <h2>Income by Source</h2>
-  <p class="muted">Total income grouped by source</p>
+  <div class="chart-wrap bar-chart-wrap">
+    <canvas id="moneyFlowChart"></canvas>
+  </div>
+</section>
+
+<section class="card chart-card">
+    <h2>Expense Trend</h2>
+    <p class="muted">Monthly expenses over the last 4 months</p>
+
+    <div class="chart-wrap">
+      <canvas id="expenseTrendChart"></canvas>
+    </div>
+  </section>
+</section>
+
+    <section id="expenseBudgetSection" class="card">
+  <div class="section-header">
+    <div>
+      <h2>Expense Budget</h2>
+      <p class="muted">Set and review category budgets for the selected month</p>
+    </div>
+
+    <div class="section-actions">
+  <button type="button" id="manageCategoriesBtn" class="link-button">Manage categories</button>
+  <button type="button" id="editBudgetsBtn" class="link-button">Edit budgets</button>
+</div>
+  </div>
 
   <table>
     <thead>
       <tr>
-        <th>Source</th>
-        <th>Total</th>
+        <th>Category</th>
+        <th>Total spent</th>
+        <th>Budget</th>
+        <th>Remaining</th>
       </tr>
     </thead>
-    <tbody id="incomeBySourceBody"></tbody>
+    <tbody id="expenseBudgetBody"></tbody>
   </table>
 </section>
-    </section>
-    <section class="card">
+
+<section class="card">
   <h2>Savings by Goal</h2>
   <p class="muted">Monthly savings and overall progress toward each goal</p>
-
 
   <table>
     <thead>
       <tr>
         <th>Goal</th>
-    <th>This month</th>
-    <th>Total saved</th>
-    <th>Target</th>
-    <th>Progress</th>
+        <th>This month</th>
+        <th>Total saved</th>
+        <th>Target</th>
+        <th>Progress</th>
       </tr>
     </thead>
     <tbody id="savingsByGoalBody"></tbody>
   </table>
 </section>
+
+
+<section id="categoryModal" class="modal hidden">
+  <div class="modal-card large-modal-card">
+    <div class="modal-header">
+      <div>
+        <h2>Manage Categories</h2>
+        <p class="muted">Rename categories or delete unused ones</p>
+      </div>
+      <button type="button" id="closeCategoryModalBtn" class="secondary">Close</button>
+    </div>
+
+    <form id="categoryModalForm">
+      <div id="categoryInputs"></div>
+      <button type="submit">Save category changes</button>
+    </form>
+  </div>
+</section>
+
+<section id="budgetModal" class="modal hidden">
+  <div class="modal-card large-modal-card">
+    <div class="modal-header">
+      <div>
+        <h2>Edit Expense Budgets</h2>
+        <p class="muted">Set budgets for the selected month</p>
+      </div>
+      <button type="button" id="closeBudgetModalBtn" class="secondary">Close</button>
+    </div>
+
+    <form id="budgetModalForm">
+      <div id="budgetInputs"></div>
+      <button type="submit">Save budgets</button>
+    </form>
+  </div>
+</section>
+
+  <section class="card">
+    <h2>Income by Source</h2>
+    <p class="muted">Total income grouped by source</p>
+
+    <table>
+      <thead>
+        <tr>
+          <th>Source</th>
+          <th>Total</th>
+        </tr>
+      </thead>
+      <tbody id="incomeBySourceBody"></tbody>
+    </table>
+  </section>
+
+
   </div>
 
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-  <script src="reports.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<script src="reports.js"></script>
+
 </body>
 </html>
