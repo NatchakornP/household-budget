@@ -552,11 +552,6 @@ td:last-child {
   margin: 24px auto 0;
 }
 
-.chart-card {
-  display: flex;
-  flex-direction: column;
-}
-
 .chart-card .bar-chart-wrap {
   margin: auto;
 }

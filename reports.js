@@ -3,6 +3,8 @@ const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBh
 
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY);
 
+const APP_LOCALE = "en-US";
+
 const logoutBtn = document.getElementById("logoutBtn");
 const mobileMenuBtn = document.getElementById("mobileMenuBtn");
 const mobileMenu = document.getElementById("mobileMenu");
@@ -44,7 +46,7 @@ let expenseTrendChart = null;
 
 
 function money(value) {
-  return new Intl.NumberFormat(undefined, {
+  return new Intl.NumberFormat(APP_LOCALE, {
     style: "currency",
     currency: "DKK"
   }).format(Number(value || 0));
@@ -162,7 +164,7 @@ function formatMonthLabel(monthValue) {
   const [year, month] = monthValue.split("-").map(Number);
   const date = new Date(year, month - 1, 1);
 
-  return new Intl.DateTimeFormat(undefined, {
+  return new Intl.DateTimeFormat(APP_LOCALE, {
     month: "short",
     year: "numeric"
   }).format(date);
