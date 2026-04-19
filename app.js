@@ -27,6 +27,11 @@ const categorySelect = document.getElementById("categorySelect");
 const newCategoryBox = document.getElementById("newCategoryBox");
 const newCategoryInput = document.getElementById("newCategoryInput");
 const saveCategoryBtn = document.getElementById("saveCategoryBtn");
+const sourceSelect = document.getElementById("sourceSelect");
+const newSourceBox = document.getElementById("newSourceBox");
+const newSourceInput = document.getElementById("newSourceInput");
+const saveSourceBtn = document.getElementById("saveSourceBtn");
+
 
 const editSection = document.getElementById("editSection");
 const editTitle = document.getElementById("editTitle");
@@ -51,6 +56,8 @@ let allExpenses = [];
 let allIncome = [];
 let allSavings = [];
 let allGoalsMap = {};
+let reopenViewAllType = null;
+
 
 
 
@@ -115,6 +122,36 @@ function getCategoryOptions(categories, includeAddNew) {
 
   return options + '<option value="__add_new__">+ Add new category</option>';
 }
+
+function getSourceOptions(sources, includeAddNew) {
+  const options =
+    '<option value="">Source</option>' +
+    sources.map((source) => `
+      <option value="${escapeHtml(source.name)}">${escapeHtml(source.name)}</option>
+    `).join("");
+
+  if (!includeAddNew) {
+    return options;
+  }
+
+  return options + '<option value="__add_new__">+ Add new source</option>';
+}
+
+async function getIncomeSources() {
+  const { data, error } = await supabaseClient
+    .from("income_sources")
+    .select("id,name")
+    .order("name", { ascending: true });
+
+  if (error) {
+    alert(error.message);
+    return [];
+  }
+
+  return data || [];
+}
+
+
 
 async function getCurrentUser() {
   const { data: sessionData } = await supabaseClient.auth.getSession();
@@ -199,7 +236,7 @@ async function logout() {
 }
 
 async function refreshDashboard() {
-  const [expensesRes, incomeRes, goalsRes, savingsRes, categoriesRes] = await Promise.all([
+  const [expensesRes, incomeRes, goalsRes, savingsRes, categoriesRes, sourcesRes] = await Promise.all([
     supabaseClient
       .from("expenses")
       .select("id,title,amount,date,paid_by,category,note,created_at")
@@ -227,6 +264,12 @@ async function refreshDashboard() {
       .from("expense_categories")
       .select("id,name")
       .order("name", { ascending: true }),
+
+      supabaseClient
+      .from("income_sources")
+      .select("id,name")
+      .order("name", { ascending: true })
+
   ]);
 
   if (expensesRes.error) throw expensesRes.error;
@@ -234,12 +277,16 @@ async function refreshDashboard() {
   if (goalsRes.error) throw goalsRes.error;
   if (savingsRes.error) throw savingsRes.error;
   if (categoriesRes.error) throw categoriesRes.error;
+  if (sourcesRes.error) throw sourcesRes.error;
+
 
   const expenses = expensesRes.data || [];
   const income = incomeRes.data || [];
   const goals = goalsRes.data || [];
   const savings = savingsRes.data || [];
   const categories = categoriesRes.data || [];
+  const sources = sourcesRes.data || [];
+
 
   viewAllExpensesBtn.classList.toggle("hidden", expenses.length <= 5);
   viewAllIncomeBtn.classList.toggle("hidden", income.length <= 5);
@@ -249,6 +296,9 @@ async function refreshDashboard() {
   getExpensesByCategory(expenses);
 
   categorySelect.innerHTML = getCategoryOptions(categories, true);
+sourceSelect.innerHTML = getSourceOptions(sources, true);
+
+
 
   const totalIncome = income.reduce((sum, row) => sum + Number(row.amount || 0), 0);
   const totalExpenses = expenses.reduce((sum, row) => sum + Number(row.amount || 0), 0);
@@ -385,6 +435,12 @@ async function addIncome(e) {
   }
 
   const payload = Object.fromEntries(form.entries());
+  if (payload.source === "__add_new__") {
+  sourceSelect.setCustomValidity("Please add the new source first.");
+  sourceSelect.reportValidity();
+  return;
+}
+
 
   payload.user_id = user.id;
   payload.amount = Number(payload.amount);
@@ -495,6 +551,43 @@ async function addCategoryFromDropdown() {
   categorySelect.value = name;
 }
 
+async function addSourceFromDropdown() {
+  const user = await getCurrentUser();
+
+  if (!user) {
+    alert("Please log in first.");
+    return;
+  }
+
+  const name = newSourceInput.value.trim();
+
+  if (!name) {
+    newSourceInput.required = true;
+    newSourceInput.reportValidity();
+    return;
+  }
+
+  const { error } = await supabaseClient
+    .from("income_sources")
+    .insert({
+      name,
+      user_id: user.id
+    });
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  newSourceInput.value = "";
+  newSourceBox.classList.add("hidden");
+  showToast("Source successfully added", "success-add");
+  await refreshDashboard();
+
+  sourceSelect.value = name;
+}
+
+
 function openViewAll(type) {
   if (type === "expenses") {
     viewAllTitle.textContent = "All Expenses";
@@ -521,7 +614,7 @@ function openViewAll(type) {
     <td data-label="Note">${escapeHtml(row.note)}</td>
     <td data-label="Actions">
       <div class="actions">
-        <button type="button" onclick="openEditExpense('${row.id}')">Details</button>
+        <button type="button" onclick="openEditFromViewAll('expenses', openEditExpense, '${row.id}')">Details</button>
         <button type="button" class="danger" onclick="deleteExpense('${row.id}')">Delete</button>
       </div>
     </td>
@@ -552,7 +645,7 @@ function openViewAll(type) {
     <td data-label="Note">${escapeHtml(row.note)}</td>
     <td data-label="Actions">
       <div class="actions">
-        <button type="button" onclick="openEditIncome('${row.id}')">Details</button>
+        <button type="button" onclick="openEditFromViewAll('income', openEditIncome, '${row.id}')">Details</button>
         <button type="button" class="danger" onclick="deleteIncome('${row.id}')">Delete</button>
       </div>
     </td>
@@ -583,7 +676,7 @@ function openViewAll(type) {
     <td data-label="Note">${escapeHtml(row.note)}</td>
     <td data-label="Actions">
       <div class="actions">
-        <button type="button" onclick="openEditSavings('${row.id}')">Details</button>
+        <button type="button" onclick="openEditFromViewAll('savings', openEditSavings, '${row.id}')">Details</button>
         <button type="button" class="danger" onclick="deleteSavings('${row.id}')">Delete</button>
       </div>
     </td>
@@ -593,6 +686,32 @@ function openViewAll(type) {
 
   viewAllSection.classList.remove("hidden");
 }
+
+function openEditFromViewAll(type, openEditFunction, id) {
+  reopenViewAllType = type;
+  viewAllSection.classList.add("hidden");
+  openEditFunction(id);
+}
+
+async function closeEditAfterChange() {
+  editSection.classList.add("hidden");
+  await refreshDashboard();
+
+  if (reopenViewAllType) {
+    openViewAll(reopenViewAllType);
+    reopenViewAllType = null;
+  }
+}
+
+function closeEditWithoutChange() {
+  editSection.classList.add("hidden");
+
+  if (reopenViewAllType) {
+    openViewAll(reopenViewAllType);
+    reopenViewAllType = null;
+  }
+}
+
 
 
 async function deleteExpense(id) {
@@ -721,7 +840,7 @@ async function openEditExpense(id) {
 
     editSection.classList.add("hidden");
     showToast("Expense successfully edited", "success-edit");
-    await refreshDashboard();
+    await closeEditAfterChange();
   };
 
   editSection.classList.remove("hidden");
@@ -744,7 +863,10 @@ async function openEditIncome(id) {
   editForm.innerHTML = `
     <input name="amount" type="number" inputmode="decimal" step="0.01" value="${escapeHtml(data.amount)}" required />
     <input name="date" type="date" value="${escapeHtml(data.date)}" required />
-    <input name="source" value="${escapeHtml(data.source)}" placeholder="Source" required />
+    <select name="source" required>
+  ${getSourceOptions(await getIncomeSources(), false)}
+</select>
+
     <select name="received_by" required>
       <option value="">Received by</option>
       <option value="Chompoo">Chompoo</option>
@@ -753,6 +875,8 @@ async function openEditIncome(id) {
     <input name="note" value="${escapeHtml(data.note)}" placeholder="Note" />
     <button type="submit">Save changes</button>
   `;
+
+  editForm.querySelector('[name="source"]').value = data.source || "";
 
   editForm.querySelector('[name="received_by"]').value = data.received_by || "";
 
@@ -777,7 +901,7 @@ async function openEditIncome(id) {
 
     editSection.classList.add("hidden");
     showToast("Income successfully edited", "success-edit");
-    await refreshDashboard();
+    await closeEditAfterChange();
   };
 
   editSection.classList.remove("hidden");
@@ -836,7 +960,7 @@ async function openEditSavings(id) {
 
     editSection.classList.add("hidden");
     showToast("Savings successfully edited", "success-edit");
-    await refreshDashboard();
+    await closeEditAfterChange();
   };
 
   editSection.classList.remove("hidden");
@@ -910,9 +1034,22 @@ saveCategoryBtn.addEventListener("click", addCategoryFromDropdown);
 
 logoutBtn.addEventListener("click", logout);
 
-closeEditBtn.addEventListener("click", () => {
-  editSection.classList.add("hidden");
+closeEditBtn.addEventListener("click", closeEditWithoutChange);
+
+
+sourceSelect.addEventListener("change", () => {
+  sourceSelect.setCustomValidity("");
+
+  if (sourceSelect.value === "__add_new__") {
+    newSourceBox.classList.remove("hidden");
+    newSourceInput.focus();
+  } else {
+    newSourceBox.classList.add("hidden");
+  }
 });
+
+saveSourceBtn.addEventListener("click", addSourceFromDropdown);
+
 
 window.deleteExpense = deleteExpense;
 window.deleteIncome = deleteIncome;
@@ -923,6 +1060,8 @@ window.openEditExpense = openEditExpense;
 window.openEditIncome = openEditIncome;
 window.openEditSavings = openEditSavings;
 window.openEditGoal = openEditGoal;
+window.openEditFromViewAll = openEditFromViewAll;
+
 
 viewAllExpensesBtn.addEventListener("click", () => openViewAll("expenses"));
 viewAllIncomeBtn.addEventListener("click", () => openViewAll("income"));

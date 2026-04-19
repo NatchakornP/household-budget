@@ -79,7 +79,39 @@
           <tbody id="expensesByCategoryBody"></tbody>
         </table>
       </section>
+      <section class="card">
+  <h2>Income by Source</h2>
+  <p class="muted">Total income grouped by source</p>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Source</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody id="incomeBySourceBody"></tbody>
+  </table>
+</section>
     </section>
+    <section class="card">
+  <h2>Savings by Goal</h2>
+  <p class="muted">Monthly savings and overall progress toward each goal</p>
+
+
+  <table>
+    <thead>
+      <tr>
+        <th>Goal</th>
+    <th>This month</th>
+    <th>Total saved</th>
+    <th>Target</th>
+    <th>Progress</th>
+      </tr>
+    </thead>
+    <tbody id="savingsByGoalBody"></tbody>
+  </table>
+</section>
   </div>
 
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>

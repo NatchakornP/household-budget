@@ -118,7 +118,15 @@
           <form id="incomeForm">
             <input name="amount" type="number" inputmode="decimal" step="0.01" placeholder="Amount" required />
             <input name="date" type="date" required />
-            <input name="source" placeholder="Source" required />
+            <select id="sourceSelect" name="source" required>
+  <option value="">Source</option>
+  <option value="__add_new__">+ Add new source</option>
+</select>
+
+<div id="newSourceBox" class="hidden">
+  <input id="newSourceInput" type="text" placeholder="New source name" />
+  <button type="button" id="saveSourceBtn">Add source</button>
+</div>
 
             <select name="received_by" required>
               <option value="">Received by</option>

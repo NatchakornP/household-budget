@@ -14,6 +14,10 @@ const reportTotalSaved = document.getElementById("reportTotalSaved");
 const reportBalance = document.getElementById("reportBalance");
 
 const expensesByCategoryBody = document.getElementById("expensesByCategoryBody");
+const incomeBySourceBody = document.getElementById("incomeBySourceBody");
+const savingsByGoalBody = document.getElementById("savingsByGoalBody");
+
+
 const reportMonth = document.getElementById("reportMonth");
 
 
@@ -71,6 +75,29 @@ function getExpensesByCategory(expenses) {
   return totals;
 }
 
+function getIncomeBySource(income) {
+  const totals = {};
+
+  income.forEach((row) => {
+    const source = row.source || "Unknown";
+    totals[source] = (totals[source] || 0) + Number(row.amount || 0);
+  });
+
+  return totals;
+}
+
+function getSavingsByGoal(savings, goalsMap) {
+  const totals = {};
+
+  savings.forEach((row) => {
+    const goal = goalsMap[row.goal_id]?.name || "Unknown";
+    totals[goal] = (totals[goal] || 0) + Number(row.amount || 0);
+  });
+
+  return totals;
+}
+
+
 async function loadReports() {
   const selectedMonth = reportMonth.value || getCurrentMonthValue();
   const nextMonth = getNextMonthValue(selectedMonth);
@@ -78,7 +105,7 @@ async function loadReports() {
   const startDate = `${selectedMonth}-01`;
   const endDate = `${nextMonth}-01`;
 
-  const [expensesRes, incomeRes, savingsRes] = await Promise.all([
+  const [expensesRes, incomeRes, monthlySavingsRes, allSavingsRes, goalsRes] = await Promise.all([
     supabaseClient
       .from("expenses")
       .select("amount,category,date")
@@ -87,15 +114,25 @@ async function loadReports() {
 
     supabaseClient
       .from("income")
-      .select("amount,date")
+        .select("amount,source,date")
       .gte("date", startDate)
       .lt("date", endDate),
 
     supabaseClient
-      .from("savings_contributions")
-      .select("amount,date")
-      .gte("date", startDate)
-      .lt("date", endDate)
+  .from("savings_contributions")
+  .select("amount,date,goal_id")
+  .gte("date", startDate)
+  .lt("date", endDate),
+
+supabaseClient
+  .from("savings_contributions")
+  .select("amount,goal_id"),
+
+
+    supabaseClient
+    .from("savings_goals")
+    .select("id,name,target_amount")
+
   ]);
 
   if (expensesRes.error) {
@@ -108,14 +145,30 @@ async function loadReports() {
     return;
   }
 
-  if (savingsRes.error) {
-    alert(savingsRes.error.message);
-    return;
-  }
+  if (monthlySavingsRes.error) {
+  alert(monthlySavingsRes.error.message);
+  return;
+}
+
+if (allSavingsRes.error) {
+  alert(allSavingsRes.error.message);
+  return;
+}
+
+
+  if (goalsRes.error) {
+  alert(goalsRes.error.message);
+  return;
+}
+
 
   const expenses = expensesRes.data || [];
   const income = incomeRes.data || [];
-  const savings = savingsRes.data || [];
+  const monthlySavings = monthlySavingsRes.data || [];
+const allSavings = allSavingsRes.data || [];
+  const goals = goalsRes.data || [];
+  const goalsMap = Object.fromEntries(goals.map((goal) => [goal.id, goal]));
+
 
   const totalExpenses = expenses.reduce((sum, expense) => {
     return sum + Number(expense.amount || 0);
@@ -125,9 +178,9 @@ async function loadReports() {
     return sum + Number(row.amount || 0);
   }, 0);
 
-  const totalSaved = savings.reduce((sum, row) => {
-    return sum + Number(row.amount || 0);
-  }, 0);
+  const totalSaved = monthlySavings.reduce((sum, row) => {
+  return sum + Number(row.amount || 0);
+}, 0);
 
   const balance = totalIncome - totalExpenses - totalSaved;
 
@@ -147,7 +200,43 @@ async function loadReports() {
       </tr>
     `)
     .join("");
+
+    const incomeBySource = getIncomeBySource(income);
+
+incomeBySourceBody.innerHTML = Object.entries(incomeBySource)
+  .sort((a, b) => b[1] - a[1])
+  .map(([source, total]) => `
+    <tr>
+      <td data-label="Source">${escapeHtml(source)}</td>
+      <td data-label="Total">${money(total)}</td>
+    </tr>
+  `)
+  .join("");
+
+  const monthlySavingsByGoal = getSavingsByGoal(monthlySavings, goalsMap);
+const totalSavingsByGoal = getSavingsByGoal(allSavings, goalsMap);
+
+savingsByGoalBody.innerHTML = goals.map((goal) => {
+  const thisMonth = monthlySavingsByGoal[goal.name] || 0;
+  const totalSavedForGoal = totalSavingsByGoal[goal.name] || 0;
+  const target = Number(goal.target_amount || 0);
+  const progress = target > 0 ? Math.min((totalSavedForGoal / target) * 100, 100) : 0;
+
+  return `
+    <tr>
+      <td data-label="Goal">${escapeHtml(goal.name)}</td>
+      <td data-label="This month">${money(thisMonth)}</td>
+      <td data-label="Total saved">${money(totalSavedForGoal)}</td>
+      <td data-label="Target">${money(target)}</td>
+      <td data-label="Progress">${progress.toFixed(0)}%</td>
+    </tr>
+  `;
+}).join("");
+
+
+
 }
+
 
 async function initReportsPage() {
   const user = await getCurrentUser();

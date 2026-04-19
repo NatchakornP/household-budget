@@ -194,6 +194,22 @@ button.danger:hover {
   white-space: nowrap;
 }
 
+#newSourceBox {
+  display: grid;
+  gap: 10px;
+  grid-template-columns: 1fr auto;
+}
+
+#newSourceBox.hidden {
+  display: none;
+}
+
+#saveSourceBtn {
+  width: auto;
+  white-space: nowrap;
+}
+
+
 table {
   width: 100%;
   border-collapse: collapse;
@@ -512,6 +528,11 @@ td:last-child {
   #newCategoryBox {
     grid-template-columns: 1fr;
   }
+
+  #newSourceBox {
+  grid-template-columns: 1fr;
+}
+
 
     table,
   thead,
