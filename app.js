@@ -288,6 +288,12 @@ async function refreshDashboard() {
   const savings = savingsRes.data || [];
   const categories = categoriesRes.data || [];
   const sources = sourcesRes.data || [];
+  const currentMonth = getCurrentMonthValue();
+
+const monthlyExpenses = expenses.filter((row) => String(row.date || "").startsWith(currentMonth));
+const monthlyIncome = income.filter((row) => String(row.date || "").startsWith(currentMonth));
+const monthlySavings = savings.filter((row) => String(row.date || "").startsWith(currentMonth));
+
 
 
   viewAllExpensesBtn.classList.toggle("hidden", expenses.length <= 5);
@@ -302,17 +308,23 @@ sourceSelect.innerHTML = getSourceOptions(sources, true);
 
 
 
-  const totalIncome = income.reduce((sum, row) => sum + Number(row.amount || 0), 0);
-  const totalExpenses = expenses.reduce((sum, row) => sum + Number(row.amount || 0), 0);
-  const totalSaved = savings.reduce((sum, row) => sum + Number(row.amount || 0), 0);
+  const monthlyTotalIncome = monthlyIncome.reduce((sum, row) => sum + Number(row.amount || 0), 0);
+const monthlyTotalExpenses = monthlyExpenses.reduce((sum, row) => sum + Number(row.amount || 0), 0);
+const monthlyTotalSaved = monthlySavings.reduce((sum, row) => sum + Number(row.amount || 0), 0);
 
-  const startingBalance = 0;
-  const trackedBalance = startingBalance + totalIncome - totalExpenses - totalSaved;
+const allTimeIncome = income.reduce((sum, row) => sum + Number(row.amount || 0), 0);
+const allTimeExpenses = expenses.reduce((sum, row) => sum + Number(row.amount || 0), 0);
+const allTimeSaved = savings.reduce((sum, row) => sum + Number(row.amount || 0), 0);
 
-  trackedBalanceEl.textContent = money(trackedBalance);
-  totalIncomeEl.textContent = money(totalIncome);
-  totalExpensesEl.textContent = money(totalExpenses);
-  totalSavedEl.textContent = money(totalSaved);
+const startingBalance = 0;
+const trackedBalance = startingBalance + allTimeIncome - allTimeExpenses - allTimeSaved;
+
+
+trackedBalanceEl.textContent = money(trackedBalance);
+totalIncomeEl.textContent = money(monthlyTotalIncome);
+totalExpensesEl.textContent = money(monthlyTotalExpenses);
+totalSavedEl.textContent = money(monthlyTotalSaved);
+
 
   const goalsMap = Object.fromEntries(goals.map((goal) => [goal.id, goal]));
   allExpenses = expenses;
@@ -388,6 +400,15 @@ sourceSelect.innerHTML = getSourceOptions(sources, true);
     '<option value="">Choose goal</option>' +
     goals.map((goal) => `<option value="${goal.id}">${escapeHtml(goal.name)}</option>`).join("");
 }
+
+function getCurrentMonthValue() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, "0");
+
+  return `${year}-${month}`;
+}
+
 
 async function addExpense(e) {
   e.preventDefault();

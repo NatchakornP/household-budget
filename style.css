@@ -1,11 +1,13 @@
 :root {
-  --bg: #f7f7fb;
-  --card: #ffffff;
-  --text: #1f2937;
-  --muted: #6b7280;
-  --border: #e5e7eb;
-  --accent: #2563eb;
-  --danger: #dc2626;
+background: #EEAECA ;
+background: linear-gradient(90deg,rgb(236, 192, 211) 25%, rgb(166, 195, 229) 100%);
+--card: #f8f6f2;
+--text: #1f2937;
+--muted: #6b7280;
+--border: #d6d3d1;
+--accent: #22263c;
+
+  --danger: #ef5f5f;
 }
 
 * {
@@ -34,6 +36,12 @@ p {
 
 .muted {
   color: var(--muted);
+}
+
+.stat-subtitle {
+  margin: -15px 0 8px;
+  color: var(--muted);
+  font-size: 10px;
 }
 
 .hidden {
@@ -102,6 +110,24 @@ p {
   margin-bottom: 16px;
 }
 
+.accent-expense {
+  border-top: 4px solid #ef5f5f;
+}
+
+.accent-income {
+  border-top: 4px solid #27b380;
+}
+
+.accent-savings {
+  border-top: 4px solid #60a5fa;
+}
+
+.accent-goals {
+  border-top: 4px solid #a78bfa;
+}
+
+
+
 .stats {
   display: grid;
   gap: 16px;
@@ -161,6 +187,17 @@ button {
   color: white;
   border: none;
   cursor: pointer;
+  transition: background 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+button:hover {
+  background: #1d4ed8;
+  box-shadow: 0 6px 14px rgba(37, 99, 235, 0.18);
+}
+
+button:active {
+  transform: translateY(1px);
+  box-shadow: none;
 }
 
 button.secondary {
@@ -169,15 +206,22 @@ button.secondary {
   border: 1px solid var(--border);
 }
 
+button.secondary:hover,
+.secondary-link:hover {
+  background: #f9fafb;
+  border-color: #cbd5e1;
+}
+
 button.danger {
   background: var(--danger);
   color: white;
 }
 
 button.danger:hover {
-  opacity: 0.9;
   background: #b91c1c;
+  box-shadow: 0 6px 14px rgba(220, 38, 38, 0.16);
 }
+
 
 #newCategoryBox {
   display: grid;

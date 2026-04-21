@@ -43,27 +43,31 @@
       <div class="stats">
         <div class="card">
           <p class="muted">Balance</p>
+          <p class="stat-subtitle">All time</p>
           <h2 id="trackedBalance">0</h2>
         </div>
 
         <div class="card">
           <p class="muted">Income</p>
+          <p class="stat-subtitle">This month</p>
           <h2 id="totalIncome">0</h2>
         </div>
 
         <div class="card">
           <p class="muted">Expenses</p>
+          <p class="stat-subtitle">This month</p>
           <h2 id="totalExpenses">0</h2>
         </div>
 
         <div class="card">
           <p class="muted">Saved</p>
+          <p class="stat-subtitle">This month</p>
           <h2 id="totalSaved">0</h2>
         </div>
       </div>
 
       <section class="feature-section">
-        <div class="card">
+        <div class="card accent-expense">
           <h3>Add Expense</h3>
           <form id="expenseForm">
             <input name="title" placeholder="Title" required />
@@ -91,7 +95,7 @@
           </form>
         </div>
 
-        <div class="card">
+        <div class="card accent-expense">
           <h3>Recent Expenses</h3>
           <table>
             <thead>
@@ -113,7 +117,7 @@
       </section>
 
       <section class="feature-section">
-        <div class="card">
+        <div class="card accent-income">
           <h3>Add Income</h3>
           <form id="incomeForm">
             <input name="amount" type="number" inputmode="decimal" step="0.01" placeholder="Amount" required />
@@ -139,7 +143,7 @@
           </form>
         </div>
 
-        <div class="card">
+        <div class="card accent-income">
           <h3>Recent Income</h3>
           <table>
             <thead>
@@ -159,7 +163,7 @@
       </section>
 
       <section class="feature-section">
-        <div class="card">
+        <div class="card accent-savings">
           <h3>Add Savings</h3>
           <form id="savingsForm">
             <select id="goalSelect" name="goal_id" required></select>
@@ -177,7 +181,7 @@
           </form>
         </div>
 
-        <div class="card">
+        <div class="card accent-savings">
           <h3>Recent Savings</h3>
           <table>
             <thead>
@@ -198,7 +202,7 @@
       </section>
 
       <section class="feature-section">
-        <div class="card">
+        <div class="card accent-goals">
           <h3>Add Savings Goal</h3>
           <form id="goalForm">
             <input name="name" placeholder="Goal name" required />
@@ -207,7 +211,7 @@
           </form>
         </div>
 
-        <div class="card">
+        <div class="card accent-goals">
           <h3>Savings Goals</h3>
           <table>
             <thead>
