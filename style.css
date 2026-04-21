@@ -1,14 +1,20 @@
 :root {
 background: #EEAECA ;
-background: linear-gradient(90deg,rgb(236, 192, 211) 25%, rgb(166, 195, 229) 100%);
---card: #f8f6f2;
+background: linear-gradient(90deg,rgb(235, 196, 213) 25%, rgb(175, 201, 231) 100%);
+--card: white;
 --text: #1f2937;
 --muted: #6b7280;
 --border: #d6d3d1;
---accent: #22263c;
+--accent: #7d5f9c;
 
   --danger: #ef5f5f;
 }
+
+button:not(.secondary):not(.danger):hover {
+  background: #633f86;
+  box-shadow: 0 6px 14px rgba(117, 79, 155, 0.22);
+}
+
 
 * {
   box-sizing: border-box;
@@ -32,6 +38,15 @@ h2,
 h3,
 p {
   margin-top: 0;
+}
+
+.app-name {
+  margin: 0 0 6px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.72);
 }
 
 .muted {
@@ -69,14 +84,18 @@ p {
 
 .header-row {
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr;
+  grid-template-columns: 1fr auto auto;
   align-items: start;
-  column-gap: 24px;
+  column-gap: 12px;
 }
 
-.header-row #reportsLink,
+.header-row h2 {
+  margin: 0 0 8px;
+}
+
+
 .header-row .secondary-link {
-  justify-self: center;
+  justify-self: end;
   width: auto;
 }
 
@@ -84,8 +103,6 @@ p {
   justify-self: end;
   width: auto;
 }
-
-
 
 .secondary-link {
   display: inline-block;
@@ -101,13 +118,51 @@ p {
   border-color: var(--muted);
 }
 
+.cute-nav-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-width: 96px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: transparent;
+  color: white;
+  border: 1px solid rgba(255, 255, 255, 0.7);
+  text-decoration: none;
+  font: inherit;
+  font-weight: 500;
+  box-shadow: none;
+  transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease, border-color 0.2s ease;
+}
+
+.cute-nav-btn:hover {
+  transform: scale(1.05);
+  background: #EEAECA;
+  border-color: rgba(196, 181, 253, 0.8);
+  box-shadow: 0 10px 24px rgba(168, 139, 250, 0.25);
+  color: white;
+}
+
+.cute-nav-btn:active {
+  transform: scale(0.98);
+}
+
+.cute-nav-icon {
+  color: #c55aff;
+}
+
+.cute-nav-btn:hover .cute-nav-icon {
+  color: white;
+}
+
 .card {
   background: var(--card);
   border: 1px solid var(--border);
   border-radius: 16px;
   padding: 16px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
   margin-bottom: 16px;
+  box-shadow: 0 8px 24px rgba(31, 41, 55, 0.08);
 }
 
 .accent-expense {
@@ -125,8 +180,6 @@ p {
 .accent-goals {
   border-top: 4px solid #a78bfa;
 }
-
-
 
 .stats {
   display: grid;
@@ -162,6 +215,7 @@ button {
   border-radius: 10px;
   font: inherit;
   background: white;
+  font-weight: 500;
 }
 
 input,
@@ -191,7 +245,7 @@ button {
 }
 
 button:hover {
-  background: #1d4ed8;
+  background: #c691a8;
   box-shadow: 0 6px 14px rgba(37, 99, 235, 0.18);
 }
 
@@ -220,6 +274,19 @@ button.danger {
 button.danger:hover {
   background: #b91c1c;
   box-shadow: 0 6px 14px rgba(220, 38, 38, 0.16);
+}
+
+#logoutBtn {
+  background: transparent;
+  color: white;
+  border: 1px solid white;
+  box-shadow: none;
+}
+
+#logoutBtn:hover {
+  background: rgba(255, 255, 255, 0.12);
+  color: white;
+  border-color: white;
 }
 
 
@@ -633,14 +700,12 @@ td:last-child {
   grid-template-columns: 1fr;
 }
 
-.header-row #reportsLink,
 .header-row .secondary-link,
 .header-row #logoutBtn {
   justify-self: stretch;
   width: 100%;
   text-align: center;
 }
-
 
   .report-metrics {
     grid-template-columns: 1fr 1fr;
