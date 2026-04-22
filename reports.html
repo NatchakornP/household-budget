@@ -27,7 +27,11 @@
       <button id="mobileMenuBtn" class="secondary mobile-menu-button" type="button">Menu</button>
 
       <div id="mobileMenu" class="mobile-menu hidden">
-        <a class="secondary-link" href="index.html">Dashboard</a>
+  <a class="cute-nav-btn mobile-nav-btn" href="reports.html">
+    <span class="cute-nav-icon">🍇</span>
+    <span>Dashboard</span>
+    <span class="cute-nav-icon">🍇</span>
+  </a>
         <button id="mobileLogoutBtn" class="secondary" type="button">Log out</button>
       </div>
     </div>
@@ -95,7 +99,7 @@
     </div>
 
     <div class="section-actions">
-  <button type="button" id="manageCategoriesBtn" class="link-button">Manage categories</button>
+  <button type="button" id="editCategoriesBtn" class="link-button">Edit categories</button>
   <button type="button" id="editBudgetsBtn" class="link-button">Edit budgets</button>
 </div>
   </div>
@@ -114,8 +118,17 @@
 </section>
 
 <section class="card">
-  <h2>Savings by Goal</h2>
-  <p class="muted">Monthly savings and overall progress toward each goal</p>
+  <div class="section-header">
+  <div>
+    <h2>Savings by Goal</h2>
+    <p class="muted">Monthly savings and overall progress toward each goal</p>
+  </div>
+
+  <div class="section-actions">
+    <button type="button" id="addGoalBtn" class="link-button">Add goal</button>
+    <button type="button" id="editGoalsBtn" class="link-button">Edit goals</button>
+  </div>
+</div>
 
   <table>
     <thead>
@@ -180,6 +193,42 @@
       <tbody id="incomeBySourceBody"></tbody>
     </table>
   </section>
+
+  <section id="goalModal" class="modal hidden">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div>
+        <h2>Add Goal</h2>
+        <p class="muted">Create a new savings goal</p>
+      </div>
+      <button type="button" id="closeGoalModalBtn" class="secondary">Close</button>
+    </div>
+
+    <form id="goalModalForm">
+      <input name="name" placeholder="Goal name" required />
+      <input name="target_amount" type="number" inputmode="decimal" step="0.01" placeholder="Target amount" required />
+      <button type="submit">Save goal</button>
+    </form>
+  </div>
+</section>
+
+<section id="editGoalsModal" class="modal hidden">
+  <div class="modal-card large-modal-card">
+    <div class="modal-header">
+      <div>
+        <h2>Edit Goals</h2>
+        <p class="muted">Update goal names, targets, or delete unused goals</p>
+      </div>
+      <button type="button" id="closeEditGoalsModalBtn" class="secondary">Close</button>
+    </div>
+
+    <form id="editGoalsModalForm">
+      <div id="goalInputs"></div>
+      <button type="submit">Save goal changes</button>
+    </form>
+  </div>
+</section>
+
 
 
   </div>

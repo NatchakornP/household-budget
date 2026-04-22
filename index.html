@@ -17,20 +17,27 @@
     <h2>Track expenses, income, and savings</h2>
   </div>
 
-  <a id="reportsLink" class="cute-nav-btn hidden" href="reports.html">
+  <a id="reportsLink" class="cute-nav-btn hidden desktop-action" href="reports.html">
   <span class="cute-nav-icon">🍒</span>
   <span>Reports</span>
   <span class="cute-nav-icon">🍒</span>
 </a>
+
+
   <button id="logoutBtn" class="secondary desktop-action hidden">Log out</button>
 
   <button id="mobileMenuBtn" class="secondary mobile-menu-button hidden" type="button">Menu</button>
 
   <div id="mobileMenu" class="mobile-menu hidden">
-    <a class="secondary-link" href="reports.html">Reports</a>
-    <button id="mobileLogoutBtn" class="secondary" type="button">Log out</button>
-  </div>
+  <a class="cute-nav-btn mobile-nav-btn" href="reports.html">
+    <span class="cute-nav-icon">🍒</span>
+    <span>Reports</span>
+    <span class="cute-nav-icon">🍒</span>
+  </a>
+  <button id="mobileLogoutBtn" class="secondary" type="button">Log out</button>
 </div>
+</div>
+
 
     <section id="authSection" class="card">
       <h2>Login / Signup</h2>
@@ -202,32 +209,6 @@
           <div class="view-all-row">
   <button type="button" id="viewAllSavingsBtn" class="link-button hidden">View all</button>
 </div>
-        </div>
-      </section>
-
-      <section class="feature-section">
-        <div class="card accent-goals">
-          <h3>Add Savings Goal</h3>
-          <form id="goalForm">
-            <input name="name" placeholder="Goal name" required />
-            <input name="target_amount" type="number" inputmode="decimal" step="0.01" placeholder="Target amount" required />
-            <button type="submit">Save</button>
-          </form>
-        </div>
-
-        <div class="card accent-goals">
-          <h3>Savings Goals</h3>
-          <table>
-            <thead>
-              <tr>
-                <th>Goal</th>
-                <th>Target</th>
-                <th>Saved</th>
-                <th>Actions</th>
-              </tr>
-            </thead>
-            <tbody id="goalsBody"></tbody>
-          </table>
         </div>
       </section>
     </section>

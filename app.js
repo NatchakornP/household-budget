@@ -20,10 +20,7 @@ const totalSavedEl = document.getElementById("totalSaved");
 const expensesBody = document.getElementById("expensesBody");
 const incomeBody = document.getElementById("incomeBody");
 const savingsBody = document.getElementById("savingsBody");
-const goalsBody = document.getElementById("goalsBody");
-
 const goalSelect = document.getElementById("goalSelect");
-const goalForm = document.getElementById("goalForm");
 
 const categorySelect = document.getElementById("categorySelect");
 const newCategoryBox = document.getElementById("newCategoryBox");
@@ -289,6 +286,8 @@ async function refreshDashboard() {
   const categories = categoriesRes.data || [];
   const sources = sourcesRes.data || [];
   const currentMonth = getCurrentMonthValue();
+  const recentLimit = getRecentItemsLimit();
+
 
 const monthlyExpenses = expenses.filter((row) => String(row.date || "").startsWith(currentMonth));
 const monthlyIncome = income.filter((row) => String(row.date || "").startsWith(currentMonth));
@@ -338,7 +337,7 @@ totalSavedEl.textContent = money(monthlyTotalSaved);
     savedByGoal[row.goal_id] = (savedByGoal[row.goal_id] || 0) + Number(row.amount || 0);
   });
 
-  expensesBody.innerHTML = expenses.slice(0, 5).map((row) => `
+  expensesBody.innerHTML = expenses.slice(0, recentLimit).map((row) => `
   <tr>
     <td data-label="Title">${escapeHtml(row.title)}</td>
     <td data-label="Amount">${money(row.amount)}</td>
@@ -353,7 +352,7 @@ totalSavedEl.textContent = money(monthlyTotalSaved);
   </tr>
 `).join("");
 
-  incomeBody.innerHTML = income.slice(0, 5).map((row) => `
+  incomeBody.innerHTML = income.slice(0, recentLimit).map((row) => `
   <tr>
     <td data-label="Amount">${money(row.amount)}</td>
     <td data-label="Date">${escapeHtml(row.date)}</td>
@@ -367,7 +366,7 @@ totalSavedEl.textContent = money(monthlyTotalSaved);
   </tr>
 `).join("");
 
-  savingsBody.innerHTML = savings.slice(0, 5).map((row) => `
+  savingsBody.innerHTML = savings.slice(0, recentLimit).map((row) => `
   <tr>
     <td data-label="Goal">${escapeHtml(goalsMap[row.goal_id]?.name || "Unknown")}</td>
     <td data-label="Amount">${money(row.amount)}</td>
@@ -382,24 +381,15 @@ totalSavedEl.textContent = money(monthlyTotalSaved);
   </tr>
 `).join("");
 
-  goalsBody.innerHTML = goals.map((goal) => `
-  <tr>
-    <td data-label="Goal">${escapeHtml(goal.name)}</td>
-    <td data-label="Target">${money(goal.target_amount)}</td>
-    <td data-label="Saved">${money(savedByGoal[goal.id] || 0)}</td>
-    <td data-label="Actions">
-      <div class="actions">
-        <button type="button" onclick="openEditGoal('${goal.id}')">Details</button>
-        <button type="button" class="danger" onclick="deleteGoal('${goal.id}')">Delete</button>
-      </div>
-    </td>
-  </tr>
-`).join("");
-
   goalSelect.innerHTML =
     '<option value="">Choose goal</option>' +
     goals.map((goal) => `<option value="${goal.id}">${escapeHtml(goal.name)}</option>`).join("");
 }
+
+function getRecentItemsLimit() {
+  return window.innerWidth <= 768 ? 3 : 5;
+}
+
 
 function getCurrentMonthValue() {
   const now = new Date();
@@ -1040,7 +1030,6 @@ document.getElementById("signupBtn").addEventListener("click", signup);
 document.getElementById("expenseForm").addEventListener("submit", addExpense);
 document.getElementById("incomeForm").addEventListener("submit", addIncome);
 document.getElementById("savingsForm").addEventListener("submit", addSavings);
-goalForm.addEventListener("submit", addGoal);
 
 categorySelect.addEventListener("change", () => {
   categorySelect.setCustomValidity("");

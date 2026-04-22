@@ -26,7 +26,7 @@ const moneyFlowChartEl = document.getElementById("moneyFlowChart");
 let moneyFlowChart = null;
 
 
-const manageCategoriesBtn = document.getElementById("manageCategoriesBtn");
+const editCategoriesBtn = document.getElementById("editCategoriesBtn");
 const categoryModal = document.getElementById("categoryModal");
 const closeCategoryModalBtn = document.getElementById("closeCategoryModalBtn");
 const categoryModalForm = document.getElementById("categoryModalForm");
@@ -41,6 +41,20 @@ let currentCategories = [];
 let currentBudgets = [];
 const expenseTrendChartEl = document.getElementById("expenseTrendChart");
 let expenseTrendChart = null;
+
+const addGoalBtn = document.getElementById("addGoalBtn");
+const editGoalsBtn = document.getElementById("editGoalsBtn");
+
+const goalModal = document.getElementById("goalModal");
+const closeGoalModalBtn = document.getElementById("closeGoalModalBtn");
+const goalModalForm = document.getElementById("goalModalForm");
+
+const editGoalsModal = document.getElementById("editGoalsModal");
+const closeEditGoalsModalBtn = document.getElementById("closeEditGoalsModalBtn");
+const editGoalsModalForm = document.getElementById("editGoalsModalForm");
+const goalInputs = document.getElementById("goalInputs");
+let currentGoals = [];
+
 
 
 
@@ -78,14 +92,6 @@ async function getCurrentUser() {
   return data.user;
 }
 
-async function initReportsPage() {
-  const user = await getCurrentUser();
-
-  if (!user) {
-    window.location.href = "index.html";
-    return;
-  }
-}
 
 function renderMoneyFlowChart(expenses, savings) {
   const expenseTotals = getExpensesByCategory(expenses);
@@ -560,11 +566,12 @@ if (trendExpensesRes.error) {
 
 
 
-  const expenses = expensesRes.data || [];
+const expenses = expensesRes.data || [];
 const income = incomeRes.data || [];
 const monthlySavings = monthlySavingsRes.data || [];
 const allSavings = allSavingsRes.data || [];
 const goals = goalsRes.data || [];
+currentGoals = goals;
 const goalsMap = Object.fromEntries(goals.map((goal) => [goal.id, goal]));
 const categories = categoriesRes.data || [];
 const budgets = budgetsRes.data || [];
@@ -648,7 +655,7 @@ incomeBySourceBody.innerHTML = Object.entries(incomeBySource)
   .join("");
 
   const monthlySavingsByGoal = getSavingsByGoal(monthlySavings, goalsMap);
-const totalSavingsByGoal = getSavingsByGoal(allSavings, goalsMap);
+  const totalSavingsByGoal = getSavingsByGoal(allSavings, goalsMap);
 
 savingsByGoalBody.innerHTML = goals.map((goal) => {
   const thisMonth = monthlySavingsByGoal[goal.name] || 0;
@@ -656,17 +663,35 @@ savingsByGoalBody.innerHTML = goals.map((goal) => {
   const target = Number(goal.target_amount || 0);
   const progress = target > 0 ? Math.min((totalSavedForGoal / target) * 100, 100) : 0;
 
+  let progressEmoji = "🍂";
+
+  if (progress >= 100) {
+    progressEmoji = "✅";
+  } else if (progress >= 51) {
+    progressEmoji = "🔥";
+  } else if (progress >= 11) {
+    progressEmoji = "💪🏻";
+  }
+
   return `
     <tr>
       <td data-label="Goal">${escapeHtml(goal.name)}</td>
       <td data-label="This month">${money(thisMonth)}</td>
       <td data-label="Total saved">${money(totalSavedForGoal)}</td>
       <td data-label="Target">${money(target)}</td>
-      <td data-label="Progress">${progress.toFixed(0)}%</td>
+      <td data-label="Progress">
+        <div class="goal-progress">
+          <div class="goal-progress-fill" style="width: ${progress}%;"></div>
+          <span class="goal-progress-text">
+  <span class="goal-progress-emoji">${progressEmoji}</span>
+  <span class="goal-progress-percent">${progress.toFixed(0)}%</span>
+</span>
+
+        </div>
+      </td>
     </tr>
   `;
 }).join("");
-
 
 
 }
@@ -702,13 +727,168 @@ function getNextMonthValue(monthValue) {
   return `${nextYear}-${nextMonth}`;
 }
 
+function openGoalModal() {
+  goalModalForm.reset();
+  goalModal.classList.remove("hidden");
+}
+
+async function addGoalFromReports(e) {
+  e.preventDefault();
+
+  const user = await getCurrentUser();
+
+  if (!user) {
+    window.location.href = "index.html";
+    return;
+  }
+
+  const form = new FormData(goalModalForm);
+  const payload = Object.fromEntries(form.entries());
+
+  payload.user_id = user.id;
+  payload.target_amount = Number(payload.target_amount);
+
+  const { error } = await supabaseClient
+    .from("savings_goals")
+    .insert(payload);
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  goalModal.classList.add("hidden");
+  await loadReports();
+}
+
+function openEditGoalsModal() {
+  goalInputs.innerHTML = currentGoals.map((goal) => `
+    <div class="goal-input-row">
+      <label for="goal-${goal.id}">${escapeHtml(goal.name)}</label>
+      <input
+        id="goal-${goal.id}"
+        name="${goal.id}"
+        value="${escapeHtml(goal.name)}"
+        data-target="${Number(goal.target_amount || 0)}"
+        required
+      />
+      <input
+        name="target-${goal.id}"
+        type="number"
+        inputmode="decimal"
+        step="0.01"
+        min="0"
+        value="${Number(goal.target_amount || 0)}"
+        placeholder="Target"
+        required
+      />
+      <button
+        type="button"
+        class="danger"
+        onclick="deleteGoalIfUnused('${goal.id}', '${escapeHtml(goal.name)}')"
+      >
+        Delete
+      </button>
+    </div>
+  `).join("");
+
+  editGoalsModal.classList.remove("hidden");
+}
+
+async function saveGoalChanges(e) {
+  e.preventDefault();
+
+  const form = new FormData(editGoalsModalForm);
+
+  for (const goal of currentGoals) {
+    const newName = String(form.get(goal.id) || "").trim();
+    const newTarget = Number(form.get(`target-${goal.id}`) || 0);
+
+    const oldName = goal.name;
+    const oldTarget = Number(goal.target_amount || 0);
+
+    if (!newName) {
+      alert("Goal name cannot be empty.");
+      return;
+    }
+
+    if (newName === oldName && newTarget === oldTarget) {
+      continue;
+    }
+
+    const { error } = await supabaseClient
+      .from("savings_goals")
+      .update({
+        name: newName,
+        target_amount: newTarget
+      })
+      .eq("id", goal.id);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+  }
+
+  editGoalsModal.classList.add("hidden");
+  await loadReports();
+}
+
+async function deleteGoalIfUnused(id, name) {
+  const { data, error } = await supabaseClient
+    .from("savings_contributions")
+    .select("id")
+    .eq("goal_id", id)
+    .limit(1);
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  if ((data || []).length > 0) {
+    alert("This goal already has savings. Edit it instead.");
+    return;
+  }
+
+  if (!confirm(`Delete goal "${name}"?`)) return;
+
+  const { error: deleteError } = await supabaseClient
+    .from("savings_goals")
+    .delete()
+    .eq("id", id);
+
+  if (deleteError) {
+    alert(deleteError.message);
+    return;
+  }
+
+  await loadReports();
+  openEditGoalsModal();
+}
+
+
 
 async function logout() {
   await supabaseClient.auth.signOut();
   window.location.href = "index.html";
 }
 
-manageCategoriesBtn.addEventListener("click", openCategoryModal);
+if (editCategoriesBtn) {
+  editCategoriesBtn.addEventListener("click", openCategoryModal);
+}
+
+if (editBudgetsBtn) {
+  editBudgetsBtn.addEventListener("click", openBudgetModal);
+}
+
+if (addGoalBtn) {
+  addGoalBtn.addEventListener("click", openGoalModal);
+}
+
+if (editGoalsBtn) {
+  editGoalsBtn.addEventListener("click", openEditGoalsModal);
+}
 
 closeCategoryModalBtn.addEventListener("click", () => {
   categoryModal.classList.add("hidden");
@@ -736,5 +916,20 @@ logoutBtn.addEventListener("click", logout);
 mobileLogoutBtn.addEventListener("click", logout);
 
 window.deleteCategoryIfUnused = deleteCategoryIfUnused;
+
+addGoalBtn.addEventListener("click", openGoalModal);
+closeGoalModalBtn.addEventListener("click", () => {
+  goalModal.classList.add("hidden");
+});
+goalModalForm.addEventListener("submit", addGoalFromReports);
+
+editGoalsBtn.addEventListener("click", openEditGoalsModal);
+closeEditGoalsModalBtn.addEventListener("click", () => {
+  editGoalsModal.classList.add("hidden");
+});
+editGoalsModalForm.addEventListener("submit", saveGoalChanges);
+
+window.deleteGoalIfUnused = deleteGoalIfUnused;
+
 
 initReportsPage().catch(console.error);
