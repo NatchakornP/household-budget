@@ -50,12 +50,20 @@ const mobileMenuBtn = document.getElementById("mobileMenuBtn");
 const mobileMenu = document.getElementById("mobileMenu");
 const mobileLogoutBtn = document.getElementById("mobileLogoutBtn");
 
+const dueRecurringSection = document.getElementById("dueRecurringSection");
+const dueRecurringList = document.getElementById("dueRecurringList");
+const addAllRecurringBtn = document.getElementById("addAllRecurringBtn");
+
+
+
 
 let allExpenses = [];
 let allIncome = [];
 let allSavings = [];
 let allGoalsMap = {};
 let reopenViewAllType = null;
+let currentDueRecurringExpenses = [];
+
 
 
 
@@ -235,7 +243,7 @@ async function logout() {
 }
 
 async function refreshDashboard() {
-  const [expensesRes, incomeRes, goalsRes, savingsRes, categoriesRes, sourcesRes] = await Promise.all([
+  const [expensesRes, incomeRes, goalsRes, savingsRes, categoriesRes, sourcesRes, recurringExpensesRes] = await Promise.all([
     supabaseClient
       .from("expenses")
       .select("id,title,amount,date,paid_by,category,note,created_at")
@@ -264,10 +272,16 @@ async function refreshDashboard() {
       .select("id,name")
       .order("name", { ascending: true }),
 
-      supabaseClient
+    supabaseClient
       .from("income_sources")
       .select("id,name")
-      .order("name", { ascending: true })
+      .order("name", { ascending: true }),
+
+    supabaseClient
+    .from("recurring_expenses")
+    .select("*")
+    .eq("active", true)
+    .order("next_due_date", { ascending: true }),
 
   ]);
 
@@ -277,6 +291,10 @@ async function refreshDashboard() {
   if (savingsRes.error) throw savingsRes.error;
   if (categoriesRes.error) throw categoriesRes.error;
   if (sourcesRes.error) throw sourcesRes.error;
+  if (recurringExpensesRes.error) {
+  alert(recurringExpensesRes.error.message);
+  return;
+}
 
 
   const expenses = expensesRes.data || [];
@@ -287,7 +305,15 @@ async function refreshDashboard() {
   const sources = sourcesRes.data || [];
   const currentMonth = getCurrentMonthValue();
   const recentLimit = getRecentItemsLimit();
+  const recurringExpenses = recurringExpensesRes.data || [];
 
+  const today = new Date().toISOString().slice(0, 10);
+
+const dueRecurringExpenses = recurringExpenses.filter((row) => {
+  return String(row.next_due_date || "") <= today;
+});
+
+currentDueRecurringExpenses = dueRecurringExpenses;
 
 const monthlyExpenses = expenses.filter((row) => String(row.date || "").startsWith(currentMonth));
 const monthlyIncome = income.filter((row) => String(row.date || "").startsWith(currentMonth));
@@ -307,7 +333,7 @@ sourceSelect.innerHTML = getSourceOptions(sources, true);
 
 
 
-  const monthlyTotalIncome = monthlyIncome.reduce((sum, row) => sum + Number(row.amount || 0), 0);
+const monthlyTotalIncome = monthlyIncome.reduce((sum, row) => sum + Number(row.amount || 0), 0);
 const monthlyTotalExpenses = monthlyExpenses.reduce((sum, row) => sum + Number(row.amount || 0), 0);
 const monthlyTotalSaved = monthlySavings.reduce((sum, row) => sum + Number(row.amount || 0), 0);
 
@@ -384,7 +410,105 @@ totalSavedEl.textContent = money(monthlyTotalSaved);
   goalSelect.innerHTML =
     '<option value="">Choose goal</option>' +
     goals.map((goal) => `<option value="${goal.id}">${escapeHtml(goal.name)}</option>`).join("");
+
+    if (dueRecurringExpenses.length === 0) {
+  dueRecurringSection.classList.add("hidden");
+} else {
+  dueRecurringSection.classList.remove("hidden");
+  dueRecurringList.innerHTML = dueRecurringExpenses.map((row) => `
+    <div class="due-recurring-row">
+      <div>
+        <strong>${escapeHtml(row.title)}</strong>
+        <div class="muted">${money(row.amount)} · ${escapeHtml(row.next_due_date)}</div>
+      </div>
+    </div>
+  `).join("");
 }
+
+}
+
+function getNextRecurringDate(currentDate, frequency, intervalCount) {
+  const count = Number(intervalCount || 1);
+  const date = new Date(`${currentDate}T00:00:00`);
+
+  if (frequency === "weekly") {
+    date.setDate(date.getDate() + 7 * count);
+  } else if (frequency === "monthly") {
+    date.setMonth(date.getMonth() + count);
+  }
+
+  return date.toISOString().slice(0, 10);
+}
+
+function getAllDueRecurringDates(startDate, frequency, intervalCount, today) {
+  const dueDates = [];
+  let nextDate = startDate;
+
+  while (nextDate <= today) {
+    dueDates.push(nextDate);
+    nextDate = getNextRecurringDate(nextDate, frequency, intervalCount);
+  }
+
+  return {
+    dueDates,
+    nextFutureDate: nextDate
+  };
+}
+
+
+async function addAllDueRecurringExpenses() {
+  if (currentDueRecurringExpenses.length === 0) {
+    return;
+  }
+
+  const user = await getCurrentUser();
+
+  if (!user) {
+    alert("Please log in first.");
+    return;
+  }
+
+  const expensesToInsert = currentDueRecurringExpenses.map((row) => ({
+    user_id: user.id,
+    title: row.title,
+    amount: Number(row.amount),
+    date: row.next_due_date,
+    category: row.category,
+    paid_by: row.paid_by,
+    note: row.note || null
+  }));
+
+  const { error: insertError } = await supabaseClient
+    .from("expenses")
+    .insert(expensesToInsert);
+
+  if (insertError) {
+    alert(insertError.message);
+    return;
+  }
+
+  for (const row of currentDueRecurringExpenses) {
+    const nextDueDate = getNextRecurringDate(
+      row.next_due_date,
+      row.frequency,
+      row.interval_count
+    );
+
+    const { error: updateError } = await supabaseClient
+      .from("recurring_expenses")
+      .update({ next_due_date: nextDueDate })
+      .eq("id", row.id);
+
+    if (updateError) {
+      alert(updateError.message);
+      return;
+    }
+  }
+
+  showToast("Recurring expenses added", "success-add");
+  await refreshDashboard();
+}
+
 
 function getRecentItemsLimit() {
   return window.innerWidth <= 768 ? 3 : 5;
@@ -1073,6 +1197,8 @@ window.openEditIncome = openEditIncome;
 window.openEditSavings = openEditSavings;
 window.openEditGoal = openEditGoal;
 window.openEditFromViewAll = openEditFromViewAll;
+
+addAllRecurringBtn.addEventListener("click", addAllDueRecurringExpenses);
 
 
 viewAllExpensesBtn.addEventListener("click", () => openViewAll("expenses"));

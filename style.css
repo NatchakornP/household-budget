@@ -847,6 +847,51 @@ button.link-button:hover {
   font-size: 12px;
 }
 
+.recurring-pause-btn {
+  background: #f3e8ff;
+  color: #6b21a8;
+  border: 1px solid #d8b4fe;
+}
+
+.recurring-resume-btn {
+  min-width: 88px;
+  text-align: center;
+}
+
+.recurring-pause-btn:hover {
+  background: #e9d5ff;
+}
+
+.recurring-resume-btn {
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #86efac;
+}
+
+.recurring-resume-btn:hover {
+  background: #bbf7d0;
+}
+
+.recurring-input-row {
+  display: grid;
+  grid-template-columns: 1.8fr 180px 140px 80px 80px;
+  gap: 10px;
+  align-items: center;
+  margin-bottom: 10px;
+}
+
+.due-recurring-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 0;
+  border-top: 1px solid var(--border);
+}
+
+.due-recurring-row:first-child {
+  border-top: none;
+}
+
 
 @media (max-width: 768px) {
   .wrap {
@@ -1025,5 +1070,11 @@ button.link-button:hover {
   .budget-input-row {
     grid-template-columns: 1fr;
   }
+
+  @media (max-width: 768px) {
+  .recurring-input-row {
+    grid-template-columns: 1fr;
+  }
+}
 
 }

@@ -60,6 +60,28 @@ const exportMenu = document.getElementById("exportMenu");
 const exportJsonBtn = document.getElementById("exportJsonBtn");
 const exportZipBtn = document.getElementById("exportZipBtn");
 
+const editSourcesBtn = document.getElementById("editSourcesBtn");
+const sourceModal = document.getElementById("sourceModal");
+const closeSourceModalBtn = document.getElementById("closeSourceModalBtn");
+const sourceModalForm = document.getElementById("sourceModalForm");
+const sourceInputs = document.getElementById("sourceInputs");
+let currentSources = [];
+
+const recurringExpensesBody = document.getElementById("recurringExpensesBody");
+const addRecurringExpenseBtn = document.getElementById("addRecurringExpenseBtn");
+const editRecurringExpensesBtn = document.getElementById("editRecurringExpensesBtn");
+
+const recurringExpenseModal = document.getElementById("recurringExpenseModal");
+const closeRecurringExpenseModalBtn = document.getElementById("closeRecurringExpenseModalBtn");
+const recurringExpenseForm = document.getElementById("recurringExpenseForm");
+const recurringCategorySelect = document.getElementById("recurringCategorySelect");
+
+const editRecurringExpensesModal = document.getElementById("editRecurringExpensesModal");
+const closeEditRecurringExpensesModalBtn = document.getElementById("closeEditRecurringExpensesModalBtn");
+const recurringExpenseInputs = document.getElementById("recurringExpenseInputs");
+let currentRecurringExpenses = [];
+
+
 
 
 function downloadFile(filename, content, type) {
@@ -422,6 +444,15 @@ async function saveCategoryChanges(e) {
       continue;
     }
 
+    const confirmed = confirm(
+  `Rename category "${oldName}" to "${newName}"? Existing expense records and budgets using this category will be updated.`
+);
+
+if (!confirmed) {
+  continue;
+}
+
+
     const { error: categoryError } = await supabaseClient
       .from("expense_categories")
       .update({ name: newName })
@@ -630,51 +661,63 @@ const trendStartDate = `${trendMonths[0]}-01`;
   goalsRes,
   categoriesRes,
   budgetsRes,
-  trendExpensesRes
+  trendExpensesRes,
+  sourcesRes,
+  recurringExpensesRes
 ] = await Promise.all([
 
     supabaseClient
-      .from("expenses")
-      .select("amount,category,date")
-      .gte("date", startDate)
-      .lt("date", endDate),
+    .from("expenses")
+    .select("amount,category,date")
+    .gte("date", startDate)
+    .lt("date", endDate),
 
     supabaseClient
-      .from("income")
-        .select("amount,source,date")
-      .gte("date", startDate)
-      .lt("date", endDate),
+    .from("income")
+    .select("amount,source,date")
+    .gte("date", startDate)
+    .lt("date", endDate),
 
     supabaseClient
-  .from("savings_contributions")
-  .select("amount,date,goal_id")
-  .gte("date", startDate)
-  .lt("date", endDate),
+    .from("savings_contributions")
+    .select("amount,date,goal_id")
+    .gte("date", startDate)
+    .lt("date", endDate),
 
-supabaseClient
-  .from("savings_contributions")
-  .select("amount,goal_id"),
-
+    supabaseClient
+    .from("savings_contributions")
+    .select("amount,goal_id"),
 
     supabaseClient
     .from("savings_goals")
     .select("id,name,target_amount"),
+ 
+    supabaseClient
+    .from("expense_categories")
+    .select("id,name")
+    .order("name", { ascending: true }),
+ 
+    supabaseClient
+    .from("category_budgets")
+    .select("category_name,budget_amount")
+    .eq("month", selectedMonth),
 
     supabaseClient
-  .from("expense_categories")
-  .select("id,name")
-  .order("name", { ascending: true }),
+    .from("expenses")
+    .select("amount,date")
+    .gte("date", trendStartDate)
+    .lt("date", endDate),
 
-supabaseClient
-  .from("category_budgets")
-  .select("category_name,budget_amount")
-  .eq("month", selectedMonth),
+    supabaseClient
+    .from("income_sources")
+    .select("id,name")
+    .order("name", { ascending: true }),
 
-  supabaseClient
-  .from("expenses")
-  .select("amount,date")
-  .gte("date", trendStartDate)
-  .lt("date", endDate)
+    supabaseClient
+    .from("recurring_expenses")
+    .select("*")
+    .order("next_due_date", { ascending: true }),
+
 
   ]);
 
@@ -718,6 +761,18 @@ if (trendExpensesRes.error) {
   return;
 }
 
+if (sourcesRes.error) {
+  alert(sourcesRes.error.message);
+  return;
+}
+
+if (recurringExpensesRes.error) {
+  alert(recurringExpensesRes.error.message);
+  return;
+}
+
+
+
 
 
 const expenses = expensesRes.data || [];
@@ -730,14 +785,17 @@ const goalsMap = Object.fromEntries(goals.map((goal) => [goal.id, goal]));
 const categories = categoriesRes.data || [];
 const budgets = budgetsRes.data || [];
 const trendExpenses = trendExpensesRes.data || [];
+const sources = sourcesRes.data || [];
+currentSources = sources;
+const recurringExpenses = recurringExpensesRes.data || [];
+currentRecurringExpenses = recurringExpenses;
+
+
 
 renderMoneyFlowChart(expenses, monthlySavings);
 renderExpenseTrendChart(trendMonths, trendExpenses);
 currentCategories = categories;
 currentBudgets = budgets;
-
-
-
 
   const totalExpenses = expenses.reduce((sum, expense) => {
     return sum + Number(expense.amount || 0);
@@ -762,6 +820,7 @@ currentBudgets = budgets;
 const budgetByCategory = Object.fromEntries(
   budgets.map((budget) => [budget.category_name, Number(budget.budget_amount || 0)])
 );
+
 
 expenseBudgetBody.innerHTML = categories.map((category) => {
   const spent = totalsByCategory[category.name] || 0;
@@ -847,9 +906,28 @@ savingsByGoalBody.innerHTML = goals.map((goal) => {
   `;
 }).join("");
 
-
+if (recurringCategorySelect) {
+  recurringCategorySelect.innerHTML = `
+    <option value="">Category</option>
+    ${categories.map((category) => `
+      <option value="${escapeHtml(category.name)}">${escapeHtml(category.name)}</option>
+    `).join("")}
+  `;
 }
 
+recurringExpensesBody.innerHTML = recurringExpenses.map((row) => `
+  <tr>
+    <td data-label="Title">${escapeHtml(row.title)}</td>
+    <td data-label="Amount">${money(row.amount)}</td>
+    <td data-label="Category">${escapeHtml(row.category)}</td>
+    <td data-label="Paid by">${escapeHtml(row.paid_by)}</td>
+    <td data-label="Schedule">${formatRecurringSchedule(row.frequency, row.interval_count)}</td>
+    <td data-label="Next due">${escapeHtml(row.next_due_date)}</td>
+    <td data-label="Status">${row.active ? "Active" : "Paused"}</td>
+  </tr>
+`).join("");
+
+}
 
 async function initReportsPage() {
   const user = await getCurrentUser();
@@ -970,6 +1048,16 @@ async function saveGoalChanges(e) {
       continue;
     }
 
+    if (newName !== oldName) {
+  const confirmed = confirm(
+    `Rename goal "${oldName}" to "${newName}"? Existing savings records will stay linked to this renamed goal.`
+  );
+
+  if (!confirmed) {
+    continue;
+  }
+}
+
     const { error } = await supabaseClient
       .from("savings_goals")
       .update({
@@ -1021,6 +1109,224 @@ async function deleteGoalIfUnused(id, name) {
   openEditGoalsModal();
 }
 
+function openSourceModal() {
+  sourceInputs.innerHTML = currentSources.map((source) => `
+    <div class="category-input-row">
+      <label for="source-${source.id}">${escapeHtml(source.name)}</label>
+      <input
+        id="source-${source.id}"
+        name="${source.id}"
+        value="${escapeHtml(source.name)}"
+        required
+      />
+      <button
+        type="button"
+        class="danger"
+        onclick="deleteSourceIfUnused('${source.id}', '${escapeHtml(source.name)}')"
+      >
+        Delete
+      </button>
+    </div>
+  `).join("");
+
+  sourceModal.classList.remove("hidden");
+}
+
+async function saveSourceChanges(e) {
+  e.preventDefault();
+
+  const form = new FormData(sourceModalForm);
+
+  for (const source of currentSources) {
+    const newName = String(form.get(source.id) || "").trim();
+    const oldName = source.name;
+
+    if (!newName || newName === oldName) {
+      continue;
+    }
+
+    const confirmed = confirm(
+      `Rename source "${oldName}" to "${newName}"? Existing income records using this source will be updated.`
+    );
+
+    if (!confirmed) {
+      continue;
+    }
+
+    const { error: sourceError } = await supabaseClient
+      .from("income_sources")
+      .update({ name: newName })
+      .eq("id", source.id);
+
+    if (sourceError) {
+      alert(sourceError.message);
+      return;
+    }
+
+    const { error: incomeError } = await supabaseClient
+      .from("income")
+      .update({ source: newName })
+      .eq("source", oldName);
+
+    if (incomeError) {
+      alert(incomeError.message);
+      return;
+    }
+  }
+
+  sourceModal.classList.add("hidden");
+  await loadReports();
+}
+
+async function deleteSourceIfUnused(id, name) {
+  const { data, error } = await supabaseClient
+    .from("income")
+    .select("id")
+    .eq("source", name)
+    .limit(1);
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  if ((data || []).length > 0) {
+    alert("This source is already used. Rename it instead.");
+    return;
+  }
+
+  if (!confirm(`Delete source "${name}"?`)) return;
+
+  const { error: deleteError } = await supabaseClient
+    .from("income_sources")
+    .delete()
+    .eq("id", id);
+
+  if (deleteError) {
+    alert(deleteError.message);
+    return;
+  }
+
+  sourceModal.classList.add("hidden");
+  await loadReports();
+}
+
+function openRecurringExpenseModal() {
+  recurringExpenseForm.reset();
+  recurringExpenseModal.classList.remove("hidden");
+}
+
+function openRecurringExpenseModal() {
+  recurringExpenseForm.reset();
+  recurringExpenseModal.classList.remove("hidden");
+}
+
+async function addRecurringExpense(e) {
+  e.preventDefault();
+
+  const user = await getCurrentUser();
+
+  if (!user) {
+    window.location.href = "index.html";
+    return;
+  }
+
+  const form = new FormData(recurringExpenseForm);
+  const payload = Object.fromEntries(form.entries());
+
+  payload.user_id = user.id;
+  payload.amount = Number(payload.amount);
+  payload.interval_count = Number(payload.interval_count);
+  payload.next_due_date = payload.start_date;
+  payload.active = true;
+
+  const { error } = await supabaseClient
+    .from("recurring_expenses")
+    .insert(payload);
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  recurringExpenseModal.classList.add("hidden");
+  await loadReports();
+}
+
+function formatRecurringSchedule(frequency, intervalCount) {
+  const count = Number(intervalCount || 1);
+
+  if (frequency === "weekly") {
+    return count === 1 ? "Weekly" : `Every ${count} weeks`;
+  }
+
+  if (frequency === "monthly") {
+    return count === 1 ? "Monthly" : `Every ${count} months`;
+  }
+
+  return `${count} ${frequency}`;
+}
+
+
+function openEditRecurringExpensesModal() {
+  recurringExpenseInputs.innerHTML = currentRecurringExpenses.map((row) => `
+    <div class="recurring-input-row">
+      <input value="${escapeHtml(row.title)}" disabled />
+      <input value="${money(row.amount)}" disabled />
+      <input value="${formatRecurringSchedule(row.frequency, row.interval_count)}" disabled />
+
+      <button
+        type="button"
+        class="${row.active ? 'recurring-pause-btn' : 'recurring-resume-btn'}"
+        onclick="toggleRecurringExpenseActive('${row.id}', ${row.active})"
+      >
+        ${row.active ? "Pause" : "Resume"}
+      </button>
+
+      <button
+        type="button"
+        class="danger"
+        onclick="deleteRecurringExpense('${row.id}', '${escapeHtml(row.title)}')"
+      >
+        Delete
+      </button>
+    </div>
+  `).join("");
+
+  editRecurringExpensesModal.classList.remove("hidden");
+}
+
+async function deleteRecurringExpense(id, title) {
+  if (!confirm(`Delete recurring expense "${title}"?`)) return;
+
+  const { error } = await supabaseClient
+    .from("recurring_expenses")
+    .delete()
+    .eq("id", id);
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  await loadReports();
+  openEditRecurringExpensesModal();
+}
+
+async function toggleRecurringExpenseActive(id, isActive) {
+  const { error } = await supabaseClient
+    .from("recurring_expenses")
+    .update({ active: !isActive })
+    .eq("id", id);
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  await loadReports();
+  openEditRecurringExpensesModal();
+}
 
 
 async function logout() {
@@ -1100,8 +1406,45 @@ document.addEventListener("click", (e) => {
   }
 });
 
-
 window.deleteGoalIfUnused = deleteGoalIfUnused;
+
+editSourcesBtn.addEventListener("click", openSourceModal);
+
+closeSourceModalBtn.addEventListener("click", () => {
+  sourceModal.classList.add("hidden");
+});
+
+sourceModalForm.addEventListener("submit", saveSourceChanges);
+
+window.deleteSourceIfUnused = deleteSourceIfUnused;
+
+if (addRecurringExpenseBtn) {
+  addRecurringExpenseBtn.addEventListener("click", openRecurringExpenseModal);
+}
+
+if (closeRecurringExpenseModalBtn) {
+  closeRecurringExpenseModalBtn.addEventListener("click", () => {
+    recurringExpenseModal.classList.add("hidden");
+  });
+}
+
+if (recurringExpenseForm) {
+  recurringExpenseForm.addEventListener("submit", addRecurringExpense);
+}
+
+if (editRecurringExpensesBtn) {
+  editRecurringExpensesBtn.addEventListener("click", openEditRecurringExpensesModal);
+}
+
+if (closeEditRecurringExpensesModalBtn) {
+  closeEditRecurringExpensesModalBtn.addEventListener("click", () => {
+    editRecurringExpensesModal.classList.add("hidden");
+  });
+}
+
+window.toggleRecurringExpenseActive = toggleRecurringExpenseActive;
+window.deleteRecurringExpense = deleteRecurringExpense;
+
 
 
 initReportsPage().catch(console.error);

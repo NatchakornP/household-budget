@@ -165,7 +165,6 @@
   </table>
 </section>
 
-
 <section id="categoryModal" class="modal hidden">
   <div class="modal-card large-modal-card">
     <div class="modal-header">
@@ -199,21 +198,6 @@
     </form>
   </div>
 </section>
-
-  <section class="card">
-    <h2>Income by Source</h2>
-    <p class="muted">Total income grouped by source</p>
-
-    <table>
-      <thead>
-        <tr>
-          <th>Source</th>
-          <th>Total</th>
-        </tr>
-      </thead>
-      <tbody id="incomeBySourceBody"></tbody>
-    </table>
-  </section>
 
   <section id="goalModal" class="modal hidden">
   <div class="modal-card">
@@ -250,6 +234,127 @@
   </div>
 </section>
 
+<section class="card">
+  <div class="section-header">
+    <div>
+      <h2>Income by Source</h2>
+      <p class="muted">Total income grouped by source</p>
+    </div>
+
+    <div class="section-actions">
+      <button type="button" id="editSourcesBtn" class="link-button">Edit sources</button>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Source</th>
+        <th>Total</th>
+      </tr>
+    </thead>
+    <tbody id="incomeBySourceBody"></tbody>
+  </table>
+</section>
+
+<section id="sourceModal" class="modal hidden">
+  <div class="modal-card large-modal-card">
+    <div class="modal-header">
+      <div>
+        <h2>Edit Sources</h2>
+        <p class="muted">Update source names or delete unused sources</p>
+      </div>
+      <button type="button" id="closeSourceModalBtn" class="secondary">Close</button>
+    </div>
+
+    <form id="sourceModalForm">
+      <div id="sourceInputs"></div>
+      <button type="submit">Save source changes</button>
+    </form>
+  </div>
+</section>
+
+<section class="card">
+  <div class="section-header">
+    <div>
+      <h2>Recurring Expenses</h2>
+      <p class="muted">Set up regular expenses that become due automatically</p>
+    </div>
+
+    <div class="section-actions">
+      <button type="button" id="addRecurringExpenseBtn" class="link-button">Add recurring expense</button>
+      <button type="button" id="editRecurringExpensesBtn" class="link-button">Edit recurring expenses</button>
+    </div>
+  </div>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Title</th>
+        <th>Amount</th>
+        <th>Category</th>
+        <th>Paid by</th>
+        <th>Schedule</th>
+        <th>Next due</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody id="recurringExpensesBody"></tbody>
+  </table>
+</section>
+
+<section id="recurringExpenseModal" class="modal hidden">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div>
+        <h2>Add Recurring Expense</h2>
+        <p class="muted">Create a repeating expense template</p>
+      </div>
+      <button type="button" id="closeRecurringExpenseModalBtn" class="secondary">Close</button>
+    </div>
+
+    <form id="recurringExpenseForm">
+      <input name="title" placeholder="Title" required />
+      <input name="amount" type="number" inputmode="decimal" step="0.01" placeholder="Amount" required />
+
+      <select name="category" id="recurringCategorySelect" required>
+        <option value="">Category</option>
+      </select>
+
+      <select name="paid_by" required>
+        <option value="">Paid by</option>
+        <option value="Chompoo">Chompoo</option>
+        <option value="Mads">Mads</option>
+      </select>
+
+      <select name="frequency" required>
+        <option value="">Frequency</option>
+        <option value="monthly">Monthly</option>
+        <option value="weekly">Weekly</option>
+      </select>
+
+      <input name="interval_count" type="number" min="1" step="1" value="1" placeholder="Every..." required />
+      <input name="start_date" type="date" required />
+      <textarea name="note" placeholder="Note"></textarea>
+
+      <button type="submit">Save recurring expense</button>
+    </form>
+  </div>
+</section>
+
+<section id="editRecurringExpensesModal" class="modal hidden">
+  <div class="modal-card large-modal-card">
+    <div class="modal-header">
+      <div>
+        <h2>Edit Recurring Expenses</h2>
+        <p class="muted">Update templates, pause them, or delete unused ones</p>
+      </div>
+      <button type="button" id="closeEditRecurringExpensesModalBtn" class="secondary">Close</button>
+    </div>
+
+    <div id="recurringExpenseInputs"></div>
+  </div>
+</section>
 
 
   </div>
