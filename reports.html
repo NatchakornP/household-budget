@@ -5,18 +5,39 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Reports | Household Budget</title>
   <link rel="stylesheet" href="style.css" />
+  <link rel="stylesheet"
+  href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.2/css/all.min.css"
+  />
 </head>
 
 <body>
   <div id="toast" class="toast hidden"></div>
 
-  <div class="wrap">
-    <div class="row header-row">
-      <div>
+<div class="wrap">
+  <div class="row header-row">
+    <div class="reports-heading">
+      <div class="reports-title-row">
         <h1>Reports</h1>
-        <p class="muted">Review your household spending</p>
+
+        <div class="export-wrap">
+          <button type="button" id="exportMenuBtn" class="export-btn">
+            <i class="fa-solid fa-download export-icon"></i>
+            <span>Export</span>
+          </button>
+
+          <div id="exportMenu" class="export-menu hidden">
+            <button type="button" id="exportJsonBtn" class="export-menu-item">
+              Export backup (.json)
+            </button>
+            <button type="button" id="exportZipBtn" class="export-menu-item">
+              Export data (.zip)
+            </button>
+          </div>
+        </div>
       </div>
 
+      <p class="muted">Review your household spending</p>
+    </div>
       <a class="cute-nav-btn desktop-action" href="index.html">
   <span class="cute-nav-icon">🍇</span>
   <span>Dashboard</span>
@@ -236,6 +257,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <script src="reports.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+
 
 </body>
 </html>

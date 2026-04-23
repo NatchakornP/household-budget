@@ -55,8 +55,162 @@ const editGoalsModalForm = document.getElementById("editGoalsModalForm");
 const goalInputs = document.getElementById("goalInputs");
 let currentGoals = [];
 
+const exportMenuBtn = document.getElementById("exportMenuBtn");
+const exportMenu = document.getElementById("exportMenu");
+const exportJsonBtn = document.getElementById("exportJsonBtn");
+const exportZipBtn = document.getElementById("exportZipBtn");
 
 
+
+function downloadFile(filename, content, type) {
+  const blob = new Blob([content], { type });
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = filename;
+  link.click();
+
+  URL.revokeObjectURL(url);
+}
+
+async function exportBackupJson() {
+  const [
+    expensesRes,
+    incomeRes,
+    savingsRes,
+    goalsRes,
+    categoriesRes,
+    sourcesRes,
+    budgetsRes
+  ] = await Promise.all([
+    supabaseClient.from("expenses").select("*"),
+    supabaseClient.from("income").select("*"),
+    supabaseClient.from("savings_contributions").select("*"),
+    supabaseClient.from("savings_goals").select("*"),
+    supabaseClient.from("expense_categories").select("*"),
+    supabaseClient.from("income_sources").select("*"),
+    supabaseClient.from("category_budgets").select("*")
+  ]);
+
+  const responses = [
+    expensesRes,
+    incomeRes,
+    savingsRes,
+    goalsRes,
+    categoriesRes,
+    sourcesRes,
+    budgetsRes
+  ];
+
+  const failed = responses.find((res) => res.error);
+
+  if (failed) {
+    alert(failed.error.message);
+    return;
+  }
+
+  const backup = {
+    exported_at: new Date().toISOString(),
+    expenses: expensesRes.data || [],
+    income: incomeRes.data || [],
+    savings_contributions: savingsRes.data || [],
+    savings_goals: goalsRes.data || [],
+    expense_categories: categoriesRes.data || [],
+    income_sources: sourcesRes.data || [],
+    category_budgets: budgetsRes.data || []
+  };
+
+  const date = new Date().toISOString().slice(0, 10);
+
+  downloadFile(
+    `household-budget-backup-${date}.json`,
+    JSON.stringify(backup, null, 2),
+    "application/json"
+  );
+
+  exportMenu.classList.add("hidden");
+}
+
+function toCsv(rows) {
+  if (!rows.length) return "";
+
+  const headers = Object.keys(rows[0]);
+
+  const escapeCsvValue = (value) => {
+    const stringValue = String(value ?? "");
+    return `"${stringValue.replace(/"/g, '""')}"`;
+  };
+
+  const lines = [
+    headers.map(escapeCsvValue).join(","),
+    ...rows.map((row) =>
+      headers.map((header) => escapeCsvValue(row[header])).join(",")
+    )
+  ];
+
+  return lines.join("\n");
+}
+
+async function exportDataZip() {
+  const [
+    expensesRes,
+    incomeRes,
+    savingsRes,
+    goalsRes,
+    categoriesRes,
+    sourcesRes,
+    budgetsRes
+  ] = await Promise.all([
+    supabaseClient.from("expenses").select("*"),
+    supabaseClient.from("income").select("*"),
+    supabaseClient.from("savings_contributions").select("*"),
+    supabaseClient.from("savings_goals").select("*"),
+    supabaseClient.from("expense_categories").select("*"),
+    supabaseClient.from("income_sources").select("*"),
+    supabaseClient.from("category_budgets").select("*")
+  ]);
+
+  const responses = [
+    expensesRes,
+    incomeRes,
+    savingsRes,
+    goalsRes,
+    categoriesRes,
+    sourcesRes,
+    budgetsRes
+  ];
+
+  const failed = responses.find((res) => res.error);
+
+  if (failed) {
+    alert(failed.error.message);
+    return;
+  }
+
+  const zip = new JSZip();
+
+  zip.file("expenses.csv", toCsv(expensesRes.data || []));
+  zip.file("income.csv", toCsv(incomeRes.data || []));
+  zip.file("savings_contributions.csv", toCsv(savingsRes.data || []));
+  zip.file("savings_goals.csv", toCsv(goalsRes.data || []));
+  zip.file("expense_categories.csv", toCsv(categoriesRes.data || []));
+  zip.file("income_sources.csv", toCsv(sourcesRes.data || []));
+  zip.file("category_budgets.csv", toCsv(budgetsRes.data || []));
+
+  const blob = await zip.generateAsync({ type: "blob" });
+  const date = new Date().toISOString().slice(0, 10);
+  const url = URL.createObjectURL(blob);
+
+  const link = document.createElement("a");
+  link.href = url;
+  link.download = `household-budget-data-${date}.zip`;
+  link.click();
+
+  URL.revokeObjectURL(url);
+
+  exportMenu.classList.add("hidden");
+}
 
 
 function money(value) {
@@ -928,6 +1082,24 @@ closeEditGoalsModalBtn.addEventListener("click", () => {
   editGoalsModal.classList.add("hidden");
 });
 editGoalsModalForm.addEventListener("submit", saveGoalChanges);
+
+exportMenuBtn.addEventListener("click", () => {
+  exportMenu.classList.toggle("hidden");
+});
+
+exportMenu.addEventListener("click", (e) => {
+  e.stopPropagation();
+});
+
+exportJsonBtn.addEventListener("click", exportBackupJson);
+exportZipBtn.addEventListener("click", exportDataZip);
+
+document.addEventListener("click", (e) => {
+  if (!exportMenu.contains(e.target) && !exportMenuBtn.contains(e.target)) {
+    exportMenu.classList.add("hidden");
+  }
+});
+
 
 window.deleteGoalIfUnused = deleteGoalIfUnused;
 
