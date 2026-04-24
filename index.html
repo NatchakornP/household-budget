@@ -7,7 +7,7 @@
   <link rel="stylesheet" href="style.css" />
 </head>
 
-<body>
+<body class="app-loading">
   <div id="toast" class="toast hidden"></div>
 
   <div class="wrap">
@@ -39,7 +39,7 @@
 </div>
 
 
-    <section id="authSection" class="card">
+    <section id="authSection" class="card hidden">
       <h2>Login / Signup</h2>
       <div class="auth-row">
         <input id="email" type="email" placeholder="Email" />
@@ -98,7 +98,7 @@
           <h3>Add Expense</h3>
           <form id="expenseForm">
             <input name="title" placeholder="Title" required />
-            <input name="amount" type="number" inputmode="decimal" step="0.01" placeholder="Amount" required />
+            <input name="amount" type="text" inputmode="decimal" step="0.01" placeholder="Amount" required />
             <input name="date" type="date" required />
 
             <select id="categorySelect" name="category" required>
@@ -147,7 +147,7 @@
         <div class="card accent-income">
           <h3>Add Income</h3>
           <form id="incomeForm">
-            <input name="amount" type="number" inputmode="decimal" step="0.01" placeholder="Amount" required />
+            <input name="amount" type="text" inputmode="decimal" step="0.01" placeholder="Amount" required />
             <input name="date" type="date" required />
             <select id="sourceSelect" name="source" required>
   <option value="">Source</option>
@@ -194,7 +194,7 @@
           <h3>Add Savings</h3>
           <form id="savingsForm">
             <select id="goalSelect" name="goal_id" required></select>
-            <input name="amount" type="number" inputmode="decimal" step="0.01" placeholder="Amount" required />
+            <input name="amount" type="text" inputmode="decimal" step="0.01" placeholder="Amount" required />
             <input name="date" type="date" required />
 
             <select name="created_by" required>

@@ -10,7 +10,7 @@
   />
 </head>
 
-<body>
+<body class="app-loading">
   <div id="toast" class="toast hidden"></div>
 
 <div class="wrap">
@@ -211,7 +211,7 @@
 
     <form id="goalModalForm">
       <input name="name" placeholder="Goal name" required />
-      <input name="target_amount" type="number" inputmode="decimal" step="0.01" placeholder="Target amount" required />
+      <input name="target_amount" type="text" inputmode="decimal" step="0.01" placeholder="Target amount" required />
       <button type="submit">Save goal</button>
     </form>
   </div>
@@ -315,7 +315,7 @@
 
     <form id="recurringExpenseForm">
       <input name="title" placeholder="Title" required />
-      <input name="amount" type="number" inputmode="decimal" step="0.01" placeholder="Amount" required />
+      <input name="amount" type="text" inputmode="decimal" step="0.01" placeholder="Amount" required />
 
       <select name="category" id="recurringCategorySelect" required>
         <option value="">Category</option>
@@ -333,7 +333,7 @@
         <option value="weekly">Weekly</option>
       </select>
 
-      <input name="interval_count" type="number" min="1" step="1" value="1" placeholder="Every..." required />
+      <input name="interval_count" type="text" min="1" step="1" value="1" placeholder="Every..." required />
       <input name="start_date" type="date" required />
       <textarea name="note" placeholder="Note"></textarea>
 
@@ -361,8 +361,8 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-<script src="reports.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jszip/3.10.1/jszip.min.js"></script>
+<script src="reports.js"></script>
 
 
 </body>

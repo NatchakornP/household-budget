@@ -82,6 +82,10 @@ const recurringExpenseInputs = document.getElementById("recurringExpenseInputs")
 let currentRecurringExpenses = [];
 
 
+function parseAmount(value) {
+  const amount = Number(String(value).replace(",", ".").trim());
+  return Number.isFinite(amount) ? amount : NaN;
+}
 
 
 function downloadFile(filename, content, type) {
@@ -547,7 +551,7 @@ function openBudgetModal() {
       <input
         id="budget-${category.id}"
         name="${escapeHtml(category.name)}"
-        type="number"
+        type="text"
         inputmode="decimal"
         step="0.01"
         min="0"
@@ -581,10 +585,17 @@ async function saveBudgets(e) {
       return;
     }
 
+    const parsedBudgetAmount = parseAmount(rawValue);
+
+    if (Number.isNaN(parsedBudgetAmount)) {
+      alert("Please enter a valid amount.");
+      return;
+    }
+
     payloads.push({
       category_name: category.name,
       month: selectedMonth,
-      budget_amount: Number(rawValue),
+      budget_amount: parsedBudgetAmount,
       user_id: user.id
     });
   });
@@ -608,6 +619,7 @@ async function saveBudgets(e) {
   budgetModal.classList.add("hidden");
   await loadReports();
 }
+
 
 
 function getExpensesByCategory(expenses) {
@@ -939,7 +951,7 @@ async function initReportsPage() {
 
   reportMonth.value = getCurrentMonthValue();
   await loadReports();
-
+  document.body.classList.remove("app-loading");
 }
 
 function getCurrentMonthValue() {
@@ -977,8 +989,13 @@ async function addGoalFromReports(e) {
   const form = new FormData(goalModalForm);
   const payload = Object.fromEntries(form.entries());
 
-  payload.user_id = user.id;
-  payload.target_amount = Number(payload.target_amount);
+payload.user_id = user.id;
+payload.target_amount = parseAmount(payload.target_amount);
+
+if (Number.isNaN(payload.target_amount)) {
+  alert("Please enter a valid amount.");
+  return;
+}
 
   const { error } = await supabaseClient
     .from("savings_goals")
@@ -1006,11 +1023,9 @@ function openEditGoalsModal() {
       />
       <input
         name="target-${goal.id}"
-        type="number"
+        type="text"
         inputmode="decimal"
-        step="0.01"
-        min="0"
-        value="${Number(goal.target_amount || 0)}"
+        value="${goal.target_amount || 0}"
         placeholder="Target"
         required
       />
@@ -1027,6 +1042,7 @@ function openEditGoalsModal() {
   editGoalsModal.classList.remove("hidden");
 }
 
+
 async function saveGoalChanges(e) {
   e.preventDefault();
 
@@ -1034,7 +1050,7 @@ async function saveGoalChanges(e) {
 
   for (const goal of currentGoals) {
     const newName = String(form.get(goal.id) || "").trim();
-    const newTarget = Number(form.get(`target-${goal.id}`) || 0);
+    const newTarget = parseAmount(form.get(`target-${goal.id}`) || 0);
 
     const oldName = goal.name;
     const oldTarget = Number(goal.target_amount || 0);
@@ -1043,6 +1059,11 @@ async function saveGoalChanges(e) {
       alert("Goal name cannot be empty.");
       return;
     }
+
+    if (Number.isNaN(newTarget)) {
+  alert("Please enter a valid amount.");
+  return;
+}
 
     if (newName === oldName && newTarget === oldTarget) {
       continue;
@@ -1216,11 +1237,6 @@ function openRecurringExpenseModal() {
   recurringExpenseModal.classList.remove("hidden");
 }
 
-function openRecurringExpenseModal() {
-  recurringExpenseForm.reset();
-  recurringExpenseModal.classList.remove("hidden");
-}
-
 async function addRecurringExpense(e) {
   e.preventDefault();
 
@@ -1234,11 +1250,16 @@ async function addRecurringExpense(e) {
   const form = new FormData(recurringExpenseForm);
   const payload = Object.fromEntries(form.entries());
 
-  payload.user_id = user.id;
-  payload.amount = Number(payload.amount);
-  payload.interval_count = Number(payload.interval_count);
-  payload.next_due_date = payload.start_date;
-  payload.active = true;
+payload.user_id = user.id;
+payload.amount = parseAmount(payload.amount);
+payload.interval_count = Number(payload.interval_count);
+payload.next_due_date = payload.start_date;
+payload.active = true;
+
+if (Number.isNaN(payload.amount)) {
+  alert("Please enter a valid amount.");
+  return;
+}
 
   const { error } = await supabaseClient
     .from("recurring_expenses")
@@ -1342,21 +1363,12 @@ if (editBudgetsBtn) {
   editBudgetsBtn.addEventListener("click", openBudgetModal);
 }
 
-if (addGoalBtn) {
-  addGoalBtn.addEventListener("click", openGoalModal);
-}
-
-if (editGoalsBtn) {
-  editGoalsBtn.addEventListener("click", openEditGoalsModal);
-}
-
 closeCategoryModalBtn.addEventListener("click", () => {
   categoryModal.classList.add("hidden");
 });
 
 categoryModalForm.addEventListener("submit", saveCategoryChanges);
 
-editBudgetsBtn.addEventListener("click", openBudgetModal);
 
 closeBudgetModalBtn.addEventListener("click", () => {
   budgetModal.classList.add("hidden");

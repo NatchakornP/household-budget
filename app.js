@@ -31,7 +31,6 @@ const newSourceBox = document.getElementById("newSourceBox");
 const newSourceInput = document.getElementById("newSourceInput");
 const saveSourceBtn = document.getElementById("saveSourceBtn");
 
-
 const editSection = document.getElementById("editSection");
 const editTitle = document.getElementById("editTitle");
 const editForm = document.getElementById("editForm");
@@ -54,20 +53,12 @@ const dueRecurringSection = document.getElementById("dueRecurringSection");
 const dueRecurringList = document.getElementById("dueRecurringList");
 const addAllRecurringBtn = document.getElementById("addAllRecurringBtn");
 
-
-
-
 let allExpenses = [];
 let allIncome = [];
 let allSavings = [];
 let allGoalsMap = {};
 let reopenViewAllType = null;
 let currentDueRecurringExpenses = [];
-
-
-
-
-
 
 function money(value) {
   return new Intl.NumberFormat(APP_LOCALE, {
@@ -83,6 +74,11 @@ function escapeHtml(value) {
     .replace(/>/g, "&gt;")
     .replace(/"/g, "&quot;")
     .replace(/'/g, "&#039;");
+}
+
+function parseAmount(value) {
+  const amount = Number(String(value).replace(",", ".").trim());
+  return Number.isFinite(amount) ? amount : NaN;
 }
 
 function showToast(message, type) {
@@ -158,8 +154,6 @@ async function getIncomeSources() {
   return data || [];
 }
 
-
-
 async function getCurrentUser() {
   const { data: sessionData } = await supabaseClient.auth.getSession();
 
@@ -194,6 +188,8 @@ async function showAppIfLoggedIn() {
   if (loggedIn) {
     await refreshDashboard();
   }
+
+  document.body.classList.remove("app-loading");
 }
 
 async function login() {
@@ -278,11 +274,10 @@ async function refreshDashboard() {
       .order("name", { ascending: true }),
 
     supabaseClient
-    .from("recurring_expenses")
-    .select("*")
-    .eq("active", true)
-    .order("next_due_date", { ascending: true }),
-
+      .from("recurring_expenses")
+      .select("*")
+      .eq("active", true)
+      .order("next_due_date", { ascending: true })
   ]);
 
   if (expensesRes.error) throw expensesRes.error;
@@ -291,11 +286,11 @@ async function refreshDashboard() {
   if (savingsRes.error) throw savingsRes.error;
   if (categoriesRes.error) throw categoriesRes.error;
   if (sourcesRes.error) throw sourcesRes.error;
-  if (recurringExpensesRes.error) {
-  alert(recurringExpensesRes.error.message);
-  return;
-}
 
+  if (recurringExpensesRes.error) {
+    alert(recurringExpensesRes.error.message);
+    return;
+  }
 
   const expenses = expensesRes.data || [];
   const income = incomeRes.data || [];
@@ -309,47 +304,38 @@ async function refreshDashboard() {
 
   const today = new Date().toISOString().slice(0, 10);
 
-const dueRecurringExpenses = recurringExpenses.filter((row) => {
-  return String(row.next_due_date || "") <= today;
-});
+  const dueRecurringExpenses = recurringExpenses.filter((row) => {
+    return String(row.next_due_date || "") <= today;
+  });
 
-currentDueRecurringExpenses = dueRecurringExpenses;
+  currentDueRecurringExpenses = dueRecurringExpenses;
 
-const monthlyExpenses = expenses.filter((row) => String(row.date || "").startsWith(currentMonth));
-const monthlyIncome = income.filter((row) => String(row.date || "").startsWith(currentMonth));
-const monthlySavings = savings.filter((row) => String(row.date || "").startsWith(currentMonth));
-
-
+  const monthlyExpenses = expenses.filter((row) => String(row.date || "").startsWith(currentMonth));
+  const monthlyIncome = income.filter((row) => String(row.date || "").startsWith(currentMonth));
+  const monthlySavings = savings.filter((row) => String(row.date || "").startsWith(currentMonth));
 
   viewAllExpensesBtn.classList.toggle("hidden", expenses.length <= 5);
   viewAllIncomeBtn.classList.toggle("hidden", income.length <= 5);
   viewAllSavingsBtn.classList.toggle("hidden", savings.length <= 5);
 
-
-  getExpensesByCategory(expenses);
-
   categorySelect.innerHTML = getCategoryOptions(categories, true);
-sourceSelect.innerHTML = getSourceOptions(sources, true);
+  sourceSelect.innerHTML = getSourceOptions(sources, true);
 
+  const monthlyTotalIncome = monthlyIncome.reduce((sum, row) => sum + Number(row.amount || 0), 0);
+  const monthlyTotalExpenses = monthlyExpenses.reduce((sum, row) => sum + Number(row.amount || 0), 0);
+  const monthlyTotalSaved = monthlySavings.reduce((sum, row) => sum + Number(row.amount || 0), 0);
 
+  const allTimeIncome = income.reduce((sum, row) => sum + Number(row.amount || 0), 0);
+  const allTimeExpenses = expenses.reduce((sum, row) => sum + Number(row.amount || 0), 0);
+  const allTimeSaved = savings.reduce((sum, row) => sum + Number(row.amount || 0), 0);
 
-const monthlyTotalIncome = monthlyIncome.reduce((sum, row) => sum + Number(row.amount || 0), 0);
-const monthlyTotalExpenses = monthlyExpenses.reduce((sum, row) => sum + Number(row.amount || 0), 0);
-const monthlyTotalSaved = monthlySavings.reduce((sum, row) => sum + Number(row.amount || 0), 0);
+  const startingBalance = 0;
+  const trackedBalance = startingBalance + allTimeIncome - allTimeExpenses - allTimeSaved;
 
-const allTimeIncome = income.reduce((sum, row) => sum + Number(row.amount || 0), 0);
-const allTimeExpenses = expenses.reduce((sum, row) => sum + Number(row.amount || 0), 0);
-const allTimeSaved = savings.reduce((sum, row) => sum + Number(row.amount || 0), 0);
-
-const startingBalance = 0;
-const trackedBalance = startingBalance + allTimeIncome - allTimeExpenses - allTimeSaved;
-
-
-trackedBalanceEl.textContent = money(trackedBalance);
-totalIncomeEl.textContent = money(monthlyTotalIncome);
-totalExpensesEl.textContent = money(monthlyTotalExpenses);
-totalSavedEl.textContent = money(monthlyTotalSaved);
-
+  trackedBalanceEl.textContent = money(trackedBalance);
+  totalIncomeEl.textContent = money(monthlyTotalIncome);
+  totalExpensesEl.textContent = money(monthlyTotalExpenses);
+  totalSavedEl.textContent = money(monthlyTotalSaved);
 
   const goalsMap = Object.fromEntries(goals.map((goal) => [goal.id, goal]));
   allExpenses = expenses;
@@ -357,74 +343,67 @@ totalSavedEl.textContent = money(monthlyTotalSaved);
   allSavings = savings;
   allGoalsMap = goalsMap;
 
-  const savedByGoal = {};
-
-  savings.forEach((row) => {
-    savedByGoal[row.goal_id] = (savedByGoal[row.goal_id] || 0) + Number(row.amount || 0);
-  });
-
   expensesBody.innerHTML = expenses.slice(0, recentLimit).map((row) => `
-  <tr>
-    <td data-label="Title">${escapeHtml(row.title)}</td>
-    <td data-label="Amount">${money(row.amount)}</td>
-    <td data-label="Date">${escapeHtml(row.date)}</td>
-    <td data-label="Paid by">${escapeHtml(row.paid_by)}</td>
-    <td data-label="Actions">
-      <div class="actions">
-        <button type="button" onclick="openEditExpense('${row.id}')">Details</button>
-        <button type="button" class="danger" onclick="deleteExpense('${row.id}')">Delete</button>
-      </div>
-    </td>
-  </tr>
-`).join("");
+    <tr>
+      <td data-label="Title">${escapeHtml(row.title)}</td>
+      <td data-label="Amount">${money(row.amount)}</td>
+      <td data-label="Date">${escapeHtml(row.date)}</td>
+      <td data-label="Paid by">${escapeHtml(row.paid_by)}</td>
+      <td data-label="Actions">
+        <div class="actions">
+          <button type="button" onclick="openEditExpense('${row.id}')">Details</button>
+          <button type="button" class="danger" onclick="deleteExpense('${row.id}')">Delete</button>
+        </div>
+      </td>
+    </tr>
+  `).join("");
 
   incomeBody.innerHTML = income.slice(0, recentLimit).map((row) => `
-  <tr>
-    <td data-label="Amount">${money(row.amount)}</td>
-    <td data-label="Date">${escapeHtml(row.date)}</td>
-    <td data-label="Received by">${escapeHtml(row.received_by)}</td>
-    <td data-label="Actions">
-      <div class="actions">
-        <button type="button" onclick="openEditIncome('${row.id}')">Details</button>
-        <button type="button" class="danger" onclick="deleteIncome('${row.id}')">Delete</button>
-      </div>
-    </td>
-  </tr>
-`).join("");
+    <tr>
+      <td data-label="Amount">${money(row.amount)}</td>
+      <td data-label="Date">${escapeHtml(row.date)}</td>
+      <td data-label="Received by">${escapeHtml(row.received_by)}</td>
+      <td data-label="Actions">
+        <div class="actions">
+          <button type="button" onclick="openEditIncome('${row.id}')">Details</button>
+          <button type="button" class="danger" onclick="deleteIncome('${row.id}')">Delete</button>
+        </div>
+      </td>
+    </tr>
+  `).join("");
 
   savingsBody.innerHTML = savings.slice(0, recentLimit).map((row) => `
-  <tr>
-    <td data-label="Goal">${escapeHtml(goalsMap[row.goal_id]?.name || "Unknown")}</td>
-    <td data-label="Amount">${money(row.amount)}</td>
-    <td data-label="Date">${escapeHtml(row.date)}</td>
-    <td data-label="Created by">${escapeHtml(row.created_by)}</td>
-    <td data-label="Actions">
-      <div class="actions">
-        <button type="button" onclick="openEditSavings('${row.id}')">Details</button>
-        <button type="button" class="danger" onclick="deleteSavings('${row.id}')">Delete</button>
-      </div>
-    </td>
-  </tr>
-`).join("");
+    <tr>
+      <td data-label="Goal">${escapeHtml(goalsMap[row.goal_id]?.name || "Unknown")}</td>
+      <td data-label="Amount">${money(row.amount)}</td>
+      <td data-label="Date">${escapeHtml(row.date)}</td>
+      <td data-label="Created by">${escapeHtml(row.created_by)}</td>
+      <td data-label="Actions">
+        <div class="actions">
+          <button type="button" onclick="openEditSavings('${row.id}')">Details</button>
+          <button type="button" class="danger" onclick="deleteSavings('${row.id}')">Delete</button>
+        </div>
+      </td>
+    </tr>
+  `).join("");
 
   goalSelect.innerHTML =
     '<option value="">Choose goal</option>' +
     goals.map((goal) => `<option value="${goal.id}">${escapeHtml(goal.name)}</option>`).join("");
 
-    if (dueRecurringExpenses.length === 0) {
-  dueRecurringSection.classList.add("hidden");
-} else {
-  dueRecurringSection.classList.remove("hidden");
-  dueRecurringList.innerHTML = dueRecurringExpenses.map((row) => `
-    <div class="due-recurring-row">
-      <div>
-        <strong>${escapeHtml(row.title)}</strong>
-        <div class="muted">${money(row.amount)} · ${escapeHtml(row.next_due_date)}</div>
+  if (dueRecurringExpenses.length === 0) {
+    dueRecurringSection.classList.add("hidden");
+  } else {
+    dueRecurringSection.classList.remove("hidden");
+    dueRecurringList.innerHTML = dueRecurringExpenses.map((row) => `
+      <div class="due-recurring-row">
+        <div>
+          <strong>${escapeHtml(row.title)}</strong>
+          <div class="muted">${money(row.amount)} · ${escapeHtml(row.next_due_date)}</div>
+        </div>
       </div>
-    </div>
-  `).join("");
-}
-
+    `).join("");
+  }
 }
 
 function getNextRecurringDate(currentDate, frequency, intervalCount) {
@@ -454,7 +433,6 @@ function getAllDueRecurringDates(startDate, frequency, intervalCount, today) {
     nextFutureDate: nextDate
   };
 }
-
 
 async function addAllDueRecurringExpenses() {
   if (currentDueRecurringExpenses.length === 0) {
@@ -509,11 +487,9 @@ async function addAllDueRecurringExpenses() {
   await refreshDashboard();
 }
 
-
 function getRecentItemsLimit() {
   return window.innerWidth <= 768 ? 3 : 5;
 }
-
 
 function getCurrentMonthValue() {
   const now = new Date();
@@ -522,7 +498,6 @@ function getCurrentMonthValue() {
 
   return `${year}-${month}`;
 }
-
 
 async function addExpense(e) {
   e.preventDefault();
@@ -544,8 +519,13 @@ async function addExpense(e) {
   }
 
   payload.user_id = user.id;
-  payload.amount = Number(payload.amount);
+  payload.amount = parseAmount(payload.amount);
   payload.note = payload.note || null;
+
+  if (Number.isNaN(payload.amount)) {
+    alert("Please enter a valid amount.");
+    return;
+  }
 
   const { error } = await supabaseClient.from("expenses").insert(payload);
 
@@ -572,16 +552,21 @@ async function addIncome(e) {
   }
 
   const payload = Object.fromEntries(form.entries());
-  if (payload.source === "__add_new__") {
-  sourceSelect.setCustomValidity("Please add the new source first.");
-  sourceSelect.reportValidity();
-  return;
-}
 
+  if (payload.source === "__add_new__") {
+    sourceSelect.setCustomValidity("Please add the new source first.");
+    sourceSelect.reportValidity();
+    return;
+  }
 
   payload.user_id = user.id;
-  payload.amount = Number(payload.amount);
+  payload.amount = parseAmount(payload.amount);
   payload.note = payload.note || null;
+
+  if (Number.isNaN(payload.amount)) {
+    alert("Please enter a valid amount.");
+    return;
+  }
 
   const { error } = await supabaseClient.from("income").insert(payload);
 
@@ -609,8 +594,13 @@ async function addSavings(e) {
   const payload = Object.fromEntries(form.entries());
 
   payload.user_id = user.id;
-  payload.amount = Number(payload.amount);
+  payload.amount = parseAmount(payload.amount);
   payload.note = payload.note || null;
+
+  if (Number.isNaN(payload.amount)) {
+    alert("Please enter a valid amount.");
+    return;
+  }
 
   const { error } = await supabaseClient.from("savings_contributions").insert(payload);
 
@@ -638,7 +628,12 @@ async function addGoal(e) {
   const payload = Object.fromEntries(form.entries());
 
   payload.user_id = user.id;
-  payload.target_amount = Number(payload.target_amount);
+  payload.target_amount = parseAmount(payload.target_amount);
+
+  if (Number.isNaN(payload.target_amount)) {
+    alert("Please enter a valid amount.");
+    return;
+  }
 
   const { error } = await supabaseClient.from("savings_goals").insert(payload);
 
@@ -724,7 +719,6 @@ async function addSourceFromDropdown() {
   sourceSelect.value = name;
 }
 
-
 function openViewAll(type) {
   if (type === "expenses") {
     viewAllTitle.textContent = "All Expenses";
@@ -742,21 +736,21 @@ function openViewAll(type) {
     `;
 
     viewAllBody.innerHTML = allExpenses.map((row) => `
-  <tr>
-    <td data-label="Title">${escapeHtml(row.title)}</td>
-    <td data-label="Amount">${money(row.amount)}</td>
-    <td data-label="Date">${escapeHtml(row.date)}</td>
-    <td data-label="Category">${escapeHtml(row.category)}</td>
-    <td data-label="Paid by">${escapeHtml(row.paid_by)}</td>
-    <td data-label="Note">${escapeHtml(row.note)}</td>
-    <td data-label="Actions">
-      <div class="actions">
-        <button type="button" onclick="openEditFromViewAll('expenses', openEditExpense, '${row.id}')">Details</button>
-        <button type="button" class="danger" onclick="deleteExpense('${row.id}')">Delete</button>
-      </div>
-    </td>
-  </tr>
-`).join("");
+      <tr>
+        <td data-label="Title">${escapeHtml(row.title)}</td>
+        <td data-label="Amount">${money(row.amount)}</td>
+        <td data-label="Date">${escapeHtml(row.date)}</td>
+        <td data-label="Category">${escapeHtml(row.category)}</td>
+        <td data-label="Paid by">${escapeHtml(row.paid_by)}</td>
+        <td data-label="Note">${escapeHtml(row.note)}</td>
+        <td data-label="Actions">
+          <div class="actions">
+            <button type="button" onclick="openEditFromViewAll('expenses', openEditExpense, '${row.id}')">Details</button>
+            <button type="button" class="danger" onclick="deleteExpense('${row.id}')">Delete</button>
+          </div>
+        </td>
+      </tr>
+    `).join("");
   }
 
   if (type === "income") {
@@ -774,20 +768,20 @@ function openViewAll(type) {
     `;
 
     viewAllBody.innerHTML = allIncome.map((row) => `
-  <tr>
-    <td data-label="Amount">${money(row.amount)}</td>
-    <td data-label="Date">${escapeHtml(row.date)}</td>
-    <td data-label="Source">${escapeHtml(row.source)}</td>
-    <td data-label="Received by">${escapeHtml(row.received_by)}</td>
-    <td data-label="Note">${escapeHtml(row.note)}</td>
-    <td data-label="Actions">
-      <div class="actions">
-        <button type="button" onclick="openEditFromViewAll('income', openEditIncome, '${row.id}')">Details</button>
-        <button type="button" class="danger" onclick="deleteIncome('${row.id}')">Delete</button>
-      </div>
-    </td>
-  </tr>
-`).join("");
+      <tr>
+        <td data-label="Amount">${money(row.amount)}</td>
+        <td data-label="Date">${escapeHtml(row.date)}</td>
+        <td data-label="Source">${escapeHtml(row.source)}</td>
+        <td data-label="Received by">${escapeHtml(row.received_by)}</td>
+        <td data-label="Note">${escapeHtml(row.note)}</td>
+        <td data-label="Actions">
+          <div class="actions">
+            <button type="button" onclick="openEditFromViewAll('income', openEditIncome, '${row.id}')">Details</button>
+            <button type="button" class="danger" onclick="deleteIncome('${row.id}')">Delete</button>
+          </div>
+        </td>
+      </tr>
+    `).join("");
   }
 
   if (type === "savings") {
@@ -805,20 +799,20 @@ function openViewAll(type) {
     `;
 
     viewAllBody.innerHTML = allSavings.map((row) => `
-  <tr>
-    <td data-label="Goal">${escapeHtml(allGoalsMap[row.goal_id]?.name || "Unknown")}</td>
-    <td data-label="Amount">${money(row.amount)}</td>
-    <td data-label="Date">${escapeHtml(row.date)}</td>
-    <td data-label="Created by">${escapeHtml(row.created_by)}</td>
-    <td data-label="Note">${escapeHtml(row.note)}</td>
-    <td data-label="Actions">
-      <div class="actions">
-        <button type="button" onclick="openEditFromViewAll('savings', openEditSavings, '${row.id}')">Details</button>
-        <button type="button" class="danger" onclick="deleteSavings('${row.id}')">Delete</button>
-      </div>
-    </td>
-  </tr>
-`).join("");
+      <tr>
+        <td data-label="Goal">${escapeHtml(allGoalsMap[row.goal_id]?.name || "Unknown")}</td>
+        <td data-label="Amount">${money(row.amount)}</td>
+        <td data-label="Date">${escapeHtml(row.date)}</td>
+        <td data-label="Created by">${escapeHtml(row.created_by)}</td>
+        <td data-label="Note">${escapeHtml(row.note)}</td>
+        <td data-label="Actions">
+          <div class="actions">
+            <button type="button" onclick="openEditFromViewAll('savings', openEditSavings, '${row.id}')">Details</button>
+            <button type="button" class="danger" onclick="deleteSavings('${row.id}')">Delete</button>
+          </div>
+        </td>
+      </tr>
+    `).join("");
   }
 
   viewAllSection.classList.remove("hidden");
@@ -848,8 +842,6 @@ function closeEditWithoutChange() {
     reopenViewAllType = null;
   }
 }
-
-
 
 async function deleteExpense(id) {
   if (!confirm("Delete this expense?")) return;
@@ -939,7 +931,7 @@ async function openEditExpense(id) {
 
   editForm.innerHTML = `
     <input name="title" value="${escapeHtml(data.title)}" placeholder="Title" required />
-    <input name="amount" type="number" inputmode="decimal" step="0.01" value="${escapeHtml(data.amount)}" required />
+    <input name="amount" type="text" inputmode="decimal" value="${escapeHtml(data.amount)}" required />
     <input name="date" type="date" value="${escapeHtml(data.date)}" required />
     <select name="category" required>
       ${getCategoryOptions(categoriesRes.data || [], false)}
@@ -962,8 +954,13 @@ async function openEditExpense(id) {
     const form = new FormData(editForm);
     const payload = Object.fromEntries(form.entries());
 
-    payload.amount = Number(payload.amount);
+    payload.amount = parseAmount(payload.amount);
     payload.note = payload.note || null;
+
+    if (Number.isNaN(payload.amount)) {
+      alert("Please enter a valid amount.");
+      return;
+    }
 
     const { error: updateError } = await supabaseClient
       .from("expenses")
@@ -998,12 +995,11 @@ async function openEditIncome(id) {
   editTitle.textContent = "Income details";
 
   editForm.innerHTML = `
-    <input name="amount" type="number" inputmode="decimal" step="0.01" value="${escapeHtml(data.amount)}" required />
+    <input name="amount" type="text" inputmode="decimal" value="${escapeHtml(data.amount)}" required />
     <input name="date" type="date" value="${escapeHtml(data.date)}" required />
     <select name="source" required>
-  ${getSourceOptions(await getIncomeSources(), false)}
-</select>
-
+      ${getSourceOptions(await getIncomeSources(), false)}
+    </select>
     <select name="received_by" required>
       <option value="">Received by</option>
       <option value="Chompoo">Chompoo</option>
@@ -1014,7 +1010,6 @@ async function openEditIncome(id) {
   `;
 
   editForm.querySelector('[name="source"]').value = data.source || "";
-
   editForm.querySelector('[name="received_by"]').value = data.received_by || "";
 
   editForm.onsubmit = async (e) => {
@@ -1023,8 +1018,13 @@ async function openEditIncome(id) {
     const form = new FormData(editForm);
     const payload = Object.fromEntries(form.entries());
 
-    payload.amount = Number(payload.amount);
+    payload.amount = parseAmount(payload.amount);
     payload.note = payload.note || null;
+
+    if (Number.isNaN(payload.amount)) {
+      alert("Please enter a valid amount.");
+      return;
+    }
 
     const { error: updateError } = await supabaseClient
       .from("income")
@@ -1062,7 +1062,7 @@ async function openEditSavings(id) {
     <select name="goal_id" required>
       ${goalSelect.innerHTML}
     </select>
-    <input name="amount" type="number" inputmode="decimal" step="0.01" value="${escapeHtml(data.amount)}" required />
+    <input name="amount" type="text" inputmode="decimal" value="${escapeHtml(data.amount)}" required />
     <input name="date" type="date" value="${escapeHtml(data.date)}" required />
     <select name="created_by" required>
       <option value="">Created by</option>
@@ -1082,8 +1082,13 @@ async function openEditSavings(id) {
     const form = new FormData(editForm);
     const payload = Object.fromEntries(form.entries());
 
-    payload.amount = Number(payload.amount);
+    payload.amount = parseAmount(payload.amount);
     payload.note = payload.note || null;
+
+    if (Number.isNaN(payload.amount)) {
+      alert("Please enter a valid amount.");
+      return;
+    }
 
     const { error: updateError } = await supabaseClient
       .from("savings_contributions")
@@ -1119,7 +1124,7 @@ async function openEditGoal(id) {
 
   editForm.innerHTML = `
     <input name="name" value="${escapeHtml(data.name)}" placeholder="Goal name" required />
-    <input name="target_amount" type="number" inputmode="decimal" step="0.01" value="${escapeHtml(data.target_amount)}" required />
+    <input name="target_amount" type="text" inputmode="decimal" value="${escapeHtml(data.target_amount)}" required />
     <button type="submit">Save changes</button>
   `;
 
@@ -1129,7 +1134,12 @@ async function openEditGoal(id) {
     const form = new FormData(editForm);
     const payload = Object.fromEntries(form.entries());
 
-    payload.target_amount = Number(payload.target_amount);
+    payload.target_amount = parseAmount(payload.target_amount);
+
+    if (Number.isNaN(payload.target_amount)) {
+      alert("Please enter a valid amount.");
+      return;
+    }
 
     const { error: updateError } = await supabaseClient
       .from("savings_goals")
@@ -1172,7 +1182,6 @@ logoutBtn.addEventListener("click", logout);
 
 closeEditBtn.addEventListener("click", closeEditWithoutChange);
 
-
 sourceSelect.addEventListener("change", () => {
   sourceSelect.setCustomValidity("");
 
@@ -1185,7 +1194,6 @@ sourceSelect.addEventListener("change", () => {
 });
 
 saveSourceBtn.addEventListener("click", addSourceFromDropdown);
-
 
 window.deleteExpense = deleteExpense;
 window.deleteIncome = deleteIncome;
@@ -1200,7 +1208,6 @@ window.openEditFromViewAll = openEditFromViewAll;
 
 addAllRecurringBtn.addEventListener("click", addAllDueRecurringExpenses);
 
-
 viewAllExpensesBtn.addEventListener("click", () => openViewAll("expenses"));
 viewAllIncomeBtn.addEventListener("click", () => openViewAll("income"));
 viewAllSavingsBtn.addEventListener("click", () => openViewAll("savings"));
@@ -1208,7 +1215,6 @@ viewAllSavingsBtn.addEventListener("click", () => openViewAll("savings"));
 closeViewAllBtn.addEventListener("click", () => {
   viewAllSection.classList.add("hidden");
 });
-
 
 supabaseClient.auth.onAuthStateChange(() => {
   showAppIfLoggedIn().catch(console.error);
@@ -1219,6 +1225,5 @@ mobileMenuBtn.addEventListener("click", () => {
 });
 
 mobileLogoutBtn.addEventListener("click", logout);
-
 
 showAppIfLoggedIn().catch(console.error);

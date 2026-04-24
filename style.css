@@ -8,14 +8,6 @@
   --danger: #ef5f5f;
 }
 
-
-button:not(.secondary):not(.danger):not(.link-button):hover {
-  background: #c8bfd2;
-  box-shadow: 0 6px 14px rgba(117, 79, 155, 0.22);
-}
-
-
-
 * {
   box-sizing: border-box;
 }
@@ -93,7 +85,6 @@ p {
   margin: 0 0 8px;
 }
 
-
 .header-row .secondary-link {
   justify-self: end;
   width: auto;
@@ -138,7 +129,7 @@ p {
 
 .cute-nav-btn:hover {
   transform: scale(1.05);
-  background: #EEAECA;
+  background: #eeaeca;
   border-color: rgba(196, 181, 253, 0.8);
   box-shadow: 0 10px 24px rgba(168, 139, 250, 0.25);
   color: white;
@@ -209,7 +200,8 @@ form {
 
 input,
 select,
-button {
+button,
+textarea {
   padding: 10px 12px;
   border: 1px solid var(--border);
   border-radius: 10px;
@@ -218,8 +210,14 @@ button {
   font-weight: 500;
 }
 
+textarea {
+  resize: vertical;
+  min-height: 96px;
+}
+
 input,
 select,
+textarea,
 form button {
   width: 100%;
 }
@@ -249,24 +247,6 @@ button:not(.secondary):not(.danger):not(.link-button):hover {
   box-shadow: 0 6px 14px rgba(117, 79, 155, 0.22);
 }
 
-button.secondary:hover,
-.secondary-link:hover {
-  background: #f9fafb;
-  border-color: #cbd5e1;
-}
-
-button.danger:hover {
-  background: #b91c1c;
-  box-shadow: 0 6px 14px rgba(220, 38, 38, 0.16);
-}
-
-button.link-button:hover {
-  background: transparent;
-  color: var(--text);
-  box-shadow: none;
-}
-
-
 button:active {
   transform: translateY(1px);
   box-shadow: none;
@@ -294,6 +274,12 @@ button.danger:hover {
   box-shadow: 0 6px 14px rgba(220, 38, 38, 0.16);
 }
 
+button.link-button:hover {
+  background: transparent;
+  color: var(--text);
+  box-shadow: none;
+}
+
 #logoutBtn {
   background: transparent;
   color: white;
@@ -306,7 +292,6 @@ button.danger:hover {
   color: white;
   border-color: white;
 }
-
 
 #newCategoryBox {
   display: grid;
@@ -337,7 +322,6 @@ button.danger:hover {
   width: auto;
   white-space: nowrap;
 }
-
 
 table {
   width: 100%;
@@ -408,6 +392,10 @@ td:last-child {
 }
 
 .modal-header h2 {
+  margin: 0 0 4px;
+}
+
+.modal-header p {
   margin: 0;
 }
 
@@ -423,7 +411,6 @@ td:last-child {
   max-height: 70vh;
   overflow: auto;
 }
-
 
 .toast {
   position: fixed;
@@ -476,13 +463,6 @@ td:last-child {
   color: var(--text);
 }
 
-button.link-button:hover {
-  background: transparent;
-  color: var(--text);
-  box-shadow: none;
-}
-
-
 .mobile-menu-button,
 .mobile-menu {
   display: none;
@@ -501,26 +481,19 @@ button.link-button:hover {
 .report-header {
   display: grid;
   gap: 4px;
-  margin-bottom: 0px;
+  margin-bottom: 0;
 }
 
 .report-header h2 {
   margin: 0 0 4px;
 }
+
 .report-header p {
   margin: 0;
 }
 
 .report-stats {
   margin: 16px 0 0;
-}
-
-.modal-header h2 {
-  margin: 0 0 4px;
-}
-
-.modal-header p {
-  margin: 0;
 }
 
 .reports-heading {
@@ -582,7 +555,6 @@ button.link-button:hover {
   box-shadow: none;
 }
 
-
 .export-btn {
   display: inline-flex;
   align-items: center;
@@ -596,11 +568,6 @@ button.link-button:hover {
   color: #1f2937;
   font-weight: 500;
   box-shadow: 0 8px 18px rgba(31, 41, 55, 0.08);
-}
-
-.export-icon {
-  font-size: 14px;
-  line-height: 1;
 }
 
 .export-btn:hover {
@@ -698,7 +665,6 @@ button.link-button:hover {
   margin: 0 0 12px;
 }
 
-
 .section-actions {
   display: flex;
   gap: 12px;
@@ -729,13 +695,6 @@ button.link-button:hover {
   align-items: center;
   margin-bottom: 10px;
 }
-
-@media (max-width: 768px) {
-  .goal-input-row {
-    grid-template-columns: 1fr;
-  }
-}
-
 
 #budgetInputs {
   display: grid;
@@ -811,25 +770,6 @@ button.link-button:hover {
   display: flex;
   align-items: center;
   justify-content: center;
-  font-size: 12px;
-  font-weight: 700;
-  color: #22263c;
-  white-space: nowrap;
-  pointer-events: none;
-}
-
-
-.goal-progress-fill span {
-  padding: 0 8px;
-}
-
-
-.goal-progress-text {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
   gap: 4px;
   font-size: 12px;
   font-weight: 700;
@@ -848,6 +788,7 @@ button.link-button:hover {
 }
 
 .recurring-pause-btn {
+  min-width: 88px;
   background: #f3e8ff;
   color: #6b21a8;
   border: 1px solid #d8b4fe;
@@ -856,16 +797,13 @@ button.link-button:hover {
 .recurring-resume-btn {
   min-width: 88px;
   text-align: center;
+  background: #dcfce7;
+  color: #166534;
+  border: 1px solid #86efac;
 }
 
 .recurring-pause-btn:hover {
   background: #e9d5ff;
-}
-
-.recurring-resume-btn {
-  background: #dcfce7;
-  color: #166534;
-  border: 1px solid #86efac;
 }
 
 .recurring-resume-btn:hover {
@@ -892,6 +830,9 @@ button.link-button:hover {
   border-top: none;
 }
 
+body.app-loading .wrap {
+  visibility: hidden;
+}
 
 @media (max-width: 768px) {
   .wrap {
@@ -900,7 +841,8 @@ button.link-button:hover {
 
   .stats,
   .feature-section,
-  .auth-row {
+  .auth-row,
+  .goal-input-row {
     grid-template-columns: 1fr;
   }
 
@@ -910,25 +852,31 @@ button.link-button:hover {
   }
 
   .header-actions {
-  width: 100%;
-}
+    width: 100%;
+  }
 
-.header-actions .secondary-link,
-.header-actions button {
-  width: 100%;
-  text-align: center;
-}
+  .header-actions .secondary-link,
+  .header-actions button {
+    width: 100%;
+    text-align: center;
+  }
 
-.header-row {
-  grid-template-columns: 1fr;
-}
+  .header-row {
+    grid-template-columns: 1fr;
+    row-gap: 10px;
+  }
 
-.header-row .secondary-link,
-.header-row #logoutBtn {
-  justify-self: stretch;
-  width: 100%;
-  text-align: center;
-}
+  .header-row h1,
+  .header-row h2 {
+    word-break: break-word;
+  }
+
+  .header-row .secondary-link,
+  .header-row #logoutBtn {
+    justify-self: stretch;
+    width: 100%;
+    text-align: center;
+  }
 
   .report-metrics {
     grid-template-columns: 1fr 1fr;
@@ -937,7 +885,6 @@ button.link-button:hover {
   .report-metric h2 {
     font-size: 18px;
   }
-
 
   .desktop-action {
     display: none;
@@ -959,68 +906,70 @@ button.link-button:hover {
     gap: 10px;
     width: 100%;
     margin-top: 10px;
+    position: relative;
+    z-index: 30;
   }
 
   .mobile-menu.hidden {
     display: none;
   }
 
+  .mobile-menu .cute-nav-btn,
   .mobile-menu .secondary-link,
   .mobile-menu button {
     width: 100%;
     text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
   }
 
   .mobile-nav-btn {
-  background: white;
-  color: var(--text);
-  border: 1px solid var(--border);
-}
+    background: white;
+    color: var(--text);
+    border: 1px solid var(--border);
+  }
 
-.mobile-nav-btn:hover {
-  background: #fff;
-  color: var(--text);
-  border-color: var(--border);
-  box-shadow: 0 8px 18px rgba(117, 79, 155, 0.12);
-}
+  .mobile-nav-btn:hover {
+    background: #fff;
+    color: var(--text);
+    border-color: var(--border);
+    box-shadow: 0 8px 18px rgba(117, 79, 155, 0.12);
+  }
 
-.mobile-nav-btn .cute-nav-icon {
-  color: #c55aff;
-}
+  .mobile-nav-btn .cute-nav-icon {
+    color: #c55aff;
+  }
 
   .report-grid {
-  grid-template-columns: 1fr;
-}
-
-
-  #newCategoryBox {
     grid-template-columns: 1fr;
   }
 
-  #newSourceBox {
-  grid-template-columns: 1fr;
-}
+  #newCategoryBox,
+  #newSourceBox,
+  .category-input-row,
+  .budget-input-row,
+  .recurring-input-row {
+    grid-template-columns: 1fr;
+  }
 
-.section-header {
-  display: grid;
-}
+  .section-header {
+    display: grid;
+    gap: 8px;
+  }
 
-.section-header .link-button {
-  justify-self: start;
-  margin-top: 0;
-}
+  .section-header .link-button {
+    justify-self: start;
+    margin-top: 0;
+  }
 
-.section-actions {
-  justify-content: flex-start;
-}
+  .section-actions {
+    justify-content: flex-start;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
 
-.category-input-row {
-  grid-template-columns: 1fr;
-}
-
-
-
-    table,
+  table,
   thead,
   tbody,
   tr,
@@ -1035,7 +984,7 @@ button.link-button:hover {
 
   tr {
     border: 1px solid var(--border);
-    border-radius: 10px;
+    border-radius: 12px;
     padding: 10px;
     margin-bottom: 10px;
     background: white;
@@ -1043,7 +992,7 @@ button.link-button:hover {
 
   td {
     display: grid;
-    grid-template-columns: 90px 1fr;
+    grid-template-columns: 110px 1fr;
     gap: 10px;
     padding: 6px 0;
     border-bottom: none;
@@ -1067,14 +1016,12 @@ button.link-button:hover {
     flex: 1;
   }
 
-  .budget-input-row {
-    grid-template-columns: 1fr;
+  .card,
+  .modal-card {
+    border-radius: 12px;
   }
 
-  @media (max-width: 768px) {
-  .recurring-input-row {
-    grid-template-columns: 1fr;
+  .card {
+    padding: 14px;
   }
-}
-
 }
