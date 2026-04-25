@@ -357,6 +357,33 @@ td:last-child {
   white-space: nowrap;
 }
 
+.soft-action-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: auto;
+  padding: 6px 10px;
+  border: 1px solid #d8b4fe;
+  border-radius: 8px;
+  background: #f3e8ff;
+  color: var(--muted);
+  font-size: 13px;
+  font-weight: 500;
+  line-height: 1.2;
+  white-space: nowrap;
+  box-shadow: none;
+}
+
+.soft-action-btn:hover {
+  background: #e9d5ff;
+  box-shadow: 0 6px 14px rgba(107, 33, 168, 0.12);
+}
+
+.soft-action-btn i {
+  font-size: 12px;
+}
+
 .modal {
   position: fixed;
   inset: 0;
@@ -665,10 +692,47 @@ td:last-child {
   margin: 0 0 12px;
 }
 
-.section-actions {
-  display: flex;
-  gap: 12px;
+.section-action-btn {
+  width: auto;
+  padding: 6px 10px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: white;
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: none;
+}
+
+.section-action-btn:hover {
+  background: #f9fafb;
+  border-color: #cbd5e1;
+  box-shadow: 0 4px 10px rgba(31, 41, 55, 0.08);
+}
+
+.helper-link-btn {
+  display: inline-flex;
   align-items: center;
+  gap: 6px;
+  width: auto;
+  padding: 0;
+  background: transparent;
+  border: none;
+  color: var(--muted);
+  font-size: 12px;
+  font-weight: 500;
+  text-decoration: underline;
+  box-shadow: none;
+}
+
+.helper-link-btn:hover {
+  background: transparent;
+  color: var(--text);
+  box-shadow: none;
+}
+
+.helper-link-btn i {
+  font-size: 11px;
 }
 
 .category-input-row {
@@ -834,6 +898,17 @@ body.app-loading .wrap {
   visibility: hidden;
 }
 
+.field-error {
+  border-color: #ef4444 !important;
+  box-shadow: 0 0 0 3px rgba(239, 68, 68, 0.12);
+}
+
+.field-error-message {
+  margin-top: -4px;
+  font-size: 12px;
+  color: #b91c1c;
+}
+
 @media (max-width: 768px) {
   .wrap {
     padding: 16px;
@@ -877,6 +952,11 @@ body.app-loading .wrap {
     width: 100%;
     text-align: center;
   }
+
+  .section-actions .section-action-btn,
+.section-actions .helper-link-btn {
+  width: auto;
+}
 
   .report-metrics {
     grid-template-columns: 1fr 1fr;
@@ -953,21 +1033,27 @@ body.app-loading .wrap {
     grid-template-columns: 1fr;
   }
 
-  .section-header {
-    display: grid;
-    gap: 8px;
-  }
+.section-header {
+  display: grid;
+  gap: 8px;
+}
 
-  .section-header .link-button {
+.section-header .link-button {
     justify-self: start;
     margin-top: 0;
-  }
+}
 
-  .section-actions {
-    justify-content: flex-start;
-    flex-wrap: wrap;
-    gap: 8px;
-  }
+.section-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  justify-content: flex-start;
+}
+
+.section-actions .link-button,
+.section-actions .soft-action-btn {
+  width: auto;
+}
 
   table,
   thead,

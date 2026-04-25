@@ -60,6 +60,63 @@ let allGoalsMap = {};
 let reopenViewAllType = null;
 let currentDueRecurringExpenses = [];
 
+function validateRequiredFields(form) {
+  let isValid = true;
+  const fields = form.querySelectorAll("input[required], select[required], textarea[required]");
+
+  fields.forEach((field) => {
+    const value = String(field.value || "").trim();
+    const next = field.nextElementSibling;
+
+    if (!value) {
+      isValid = false;
+      field.classList.add("field-error");
+
+      if (!next || !next.classList.contains("field-error-message")) {
+        const message = document.createElement("div");
+        message.className = "field-error-message";
+        message.textContent = "This field is required.";
+        field.insertAdjacentElement("afterend", message);
+      }
+    } else {
+      field.classList.remove("field-error");
+
+      if (next && next.classList.contains("field-error-message")) {
+        next.remove();
+      }
+    }
+  });
+
+  return isValid;
+}
+
+function clearFieldError(field) {
+  field.classList.remove("field-error");
+
+  const next = field.nextElementSibling;
+  if (next && next.classList.contains("field-error-message")) {
+    next.remove();
+  }
+}
+
+function attachValidationClear(form) {
+  const fields = form.querySelectorAll("input[required], select[required], textarea[required]");
+
+  fields.forEach((field) => {
+    field.addEventListener("input", () => {
+      if (String(field.value || "").trim()) {
+        clearFieldError(field);
+      }
+    });
+
+    field.addEventListener("change", () => {
+      if (String(field.value || "").trim()) {
+        clearFieldError(field);
+      }
+    });
+  });
+}
+
 function money(value) {
   return new Intl.NumberFormat(APP_LOCALE, {
     style: "currency",
@@ -499,8 +556,27 @@ function getCurrentMonthValue() {
   return `${year}-${month}`;
 }
 
+function setSubmitButtonState(form, isLoading, loadingText) {
+  const submitBtn = form.querySelector('button[type="submit"]');
+
+  if (!submitBtn) return null;
+
+  if (!submitBtn.dataset.originalText) {
+    submitBtn.dataset.originalText = submitBtn.textContent;
+  }
+
+  submitBtn.disabled = isLoading;
+  submitBtn.textContent = isLoading ? loadingText : submitBtn.dataset.originalText;
+
+  return submitBtn;
+}
+
 async function addExpense(e) {
   e.preventDefault();
+
+  if (!validateRequiredFields(e.target)) {
+    return;
+  }
 
   const form = new FormData(e.target);
   const user = await getCurrentUser();
@@ -518,12 +594,15 @@ async function addExpense(e) {
     return;
   }
 
+  setSubmitButtonState(e.target, true, "Saving...");
+
   payload.user_id = user.id;
   payload.amount = parseAmount(payload.amount);
   payload.note = payload.note || null;
 
   if (Number.isNaN(payload.amount)) {
     alert("Please enter a valid amount.");
+    setSubmitButtonState(e.target, false);
     return;
   }
 
@@ -531,17 +610,23 @@ async function addExpense(e) {
 
   if (error) {
     alert(error.message);
+    setSubmitButtonState(e.target, false);
     return;
   }
 
   e.target.reset();
   newCategoryBox.classList.add("hidden");
+  setSubmitButtonState(e.target, false);
   showToast("Expense successfully added", "success-add");
   await refreshDashboard();
 }
 
 async function addIncome(e) {
   e.preventDefault();
+
+  if (!validateRequiredFields(e.target)) {
+    return;
+  }
 
   const form = new FormData(e.target);
   const user = await getCurrentUser();
@@ -559,12 +644,15 @@ async function addIncome(e) {
     return;
   }
 
+  setSubmitButtonState(e.target, true, "Saving...");
+
   payload.user_id = user.id;
   payload.amount = parseAmount(payload.amount);
   payload.note = payload.note || null;
 
   if (Number.isNaN(payload.amount)) {
     alert("Please enter a valid amount.");
+    setSubmitButtonState(e.target, false);
     return;
   }
 
@@ -572,16 +660,22 @@ async function addIncome(e) {
 
   if (error) {
     alert(error.message);
+    setSubmitButtonState(e.target, false);
     return;
   }
 
   e.target.reset();
+  setSubmitButtonState(e.target, false);
   showToast("Income successfully added", "success-add");
   await refreshDashboard();
 }
 
 async function addSavings(e) {
   e.preventDefault();
+
+  if (!validateRequiredFields(e.target)) {
+    return;
+  }
 
   const form = new FormData(e.target);
   const user = await getCurrentUser();
@@ -590,6 +684,8 @@ async function addSavings(e) {
     alert("Please log in first.");
     return;
   }
+
+  setSubmitButtonState(e.target, true, "Saving...");
 
   const payload = Object.fromEntries(form.entries());
 
@@ -599,6 +695,7 @@ async function addSavings(e) {
 
   if (Number.isNaN(payload.amount)) {
     alert("Please enter a valid amount.");
+    setSubmitButtonState(e.target, false);
     return;
   }
 
@@ -606,16 +703,22 @@ async function addSavings(e) {
 
   if (error) {
     alert(error.message);
+    setSubmitButtonState(e.target, false);
     return;
   }
 
   e.target.reset();
+  setSubmitButtonState(e.target, false);
   showToast("Savings successfully added", "success-add");
   await refreshDashboard();
 }
 
 async function addGoal(e) {
   e.preventDefault();
+
+  if (!validateRequiredFields(e.target)) {
+    return;
+  }
 
   const form = new FormData(e.target);
   const user = await getCurrentUser();
@@ -624,6 +727,8 @@ async function addGoal(e) {
     alert("Please log in first.");
     return;
   }
+
+  setSubmitButtonState(e.target, true, "Saving...");
 
   const payload = Object.fromEntries(form.entries());
 
@@ -632,6 +737,7 @@ async function addGoal(e) {
 
   if (Number.isNaN(payload.target_amount)) {
     alert("Please enter a valid amount.");
+    setSubmitButtonState(e.target, false);
     return;
   }
 
@@ -639,10 +745,12 @@ async function addGoal(e) {
 
   if (error) {
     alert(error.message);
+    setSubmitButtonState(e.target, false);
     return;
   }
 
   e.target.reset();
+  setSubmitButtonState(e.target, false);
   showToast("Goal successfully added", "success-add");
   await refreshDashboard();
 }
@@ -1225,5 +1333,10 @@ mobileMenuBtn.addEventListener("click", () => {
 });
 
 mobileLogoutBtn.addEventListener("click", logout);
+
+attachValidationClear(document.getElementById("expenseForm"));
+attachValidationClear(document.getElementById("incomeForm"));
+attachValidationClear(document.getElementById("savingsForm"));
+
 
 showAppIfLoggedIn().catch(console.error);

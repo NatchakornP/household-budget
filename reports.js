@@ -81,10 +81,69 @@ const closeEditRecurringExpensesModalBtn = document.getElementById("closeEditRec
 const recurringExpenseInputs = document.getElementById("recurringExpenseInputs");
 let currentRecurringExpenses = [];
 
+const copyLastMonthBudgetsBtn = document.getElementById("copyLastMonthBudgetsBtn");
+
+
 
 function parseAmount(value) {
   const amount = Number(String(value).replace(",", ".").trim());
   return Number.isFinite(amount) ? amount : NaN;
+}
+function validateRequiredFields(form) {
+  let isValid = true;
+  const fields = form.querySelectorAll("input[required], select[required], textarea[required]");
+
+  fields.forEach((field) => {
+    const value = String(field.value || "").trim();
+    const next = field.nextElementSibling;
+
+    if (!value) {
+      isValid = false;
+      field.classList.add("field-error");
+
+      if (!next || !next.classList.contains("field-error-message")) {
+        const message = document.createElement("div");
+        message.className = "field-error-message";
+        message.textContent = "This field is required.";
+        field.insertAdjacentElement("afterend", message);
+      }
+    } else {
+      field.classList.remove("field-error");
+
+      if (next && next.classList.contains("field-error-message")) {
+        next.remove();
+      }
+    }
+  });
+
+  return isValid;
+}
+
+function clearFieldError(field) {
+  field.classList.remove("field-error");
+
+  const next = field.nextElementSibling;
+  if (next && next.classList.contains("field-error-message")) {
+    next.remove();
+  }
+}
+
+function attachValidationClear(form) {
+  const fields = form.querySelectorAll("input[required], select[required], textarea[required]");
+
+  fields.forEach((field) => {
+    field.addEventListener("input", () => {
+      if (String(field.value || "").trim()) {
+        clearFieldError(field);
+      }
+    });
+
+    field.addEventListener("change", () => {
+      if (String(field.value || "").trim()) {
+        clearFieldError(field);
+      }
+    });
+  });
 }
 
 
@@ -272,7 +331,6 @@ async function getCurrentUser() {
   return data.user;
 }
 
-
 function renderMoneyFlowChart(expenses, savings) {
   const expenseTotals = getExpensesByCategory(expenses);
   const savingsTotal = savings.reduce((sum, row) => {
@@ -411,6 +469,20 @@ function renderExpenseTrendChart(months, expenses) {
   });
 }
 
+function setSubmitButtonState(form, isLoading, loadingText) {
+  const submitBtn = form.querySelector('button[type="submit"]');
+
+  if (!submitBtn) return null;
+
+  if (!submitBtn.dataset.originalText) {
+    submitBtn.dataset.originalText = submitBtn.textContent;
+  }
+
+  submitBtn.disabled = isLoading;
+  submitBtn.textContent = isLoading ? loadingText : submitBtn.dataset.originalText;
+
+  return submitBtn;
+}
 
 function openCategoryModal() {
   categoryInputs.innerHTML = currentCategories.map((category) => `
@@ -438,6 +510,8 @@ function openCategoryModal() {
 async function saveCategoryChanges(e) {
   e.preventDefault();
 
+  setSubmitButtonState(e.target, true, "Saving...");
+
   const form = new FormData(categoryModalForm);
 
   for (const category of currentCategories) {
@@ -449,13 +523,12 @@ async function saveCategoryChanges(e) {
     }
 
     const confirmed = confirm(
-  `Rename category "${oldName}" to "${newName}"? Existing expense records and budgets using this category will be updated.`
-);
+      `Rename category "${oldName}" to "${newName}"? Existing expense records and budgets using this category will be updated.`
+    );
 
-if (!confirmed) {
-  continue;
-}
-
+    if (!confirmed) {
+      continue;
+    }
 
     const { error: categoryError } = await supabaseClient
       .from("expense_categories")
@@ -464,6 +537,7 @@ if (!confirmed) {
 
     if (categoryError) {
       alert(categoryError.message);
+      setSubmitButtonState(e.target, false);
       return;
     }
 
@@ -474,6 +548,7 @@ if (!confirmed) {
 
     if (expensesError) {
       alert(expensesError.message);
+      setSubmitButtonState(e.target, false);
       return;
     }
 
@@ -484,60 +559,61 @@ if (!confirmed) {
 
     if (budgetsError) {
       alert(budgetsError.message);
+      setSubmitButtonState(e.target, false);
       return;
     }
   }
 
   categoryModal.classList.add("hidden");
+  setSubmitButtonState(e.target, false);
   await loadReports();
 }
 
 async function deleteCategoryIfUnused(id, name) {
-  const [expensesRes, budgetsRes] = await Promise.all([
-    supabaseClient
-      .from("expenses")
-      .select("id")
-      .eq("category", name)
-      .limit(1),
-
-    supabaseClient
-      .from("category_budgets")
-      .select("id")
-      .eq("category_name", name)
-      .limit(1)
-  ]);
-
-  if (expensesRes.error) {
-    alert(expensesRes.error.message);
-    return;
-  }
-
-  if (budgetsRes.error) {
-    alert(budgetsRes.error.message);
-    return;
-  }
-
-  if ((expensesRes.data || []).length > 0 || (budgetsRes.data || []).length > 0) {
-    alert("This category is already used. Rename it instead.");
-    return;
-  }
-
-  if (!confirm(`Delete category "${name}"?`)) return;
-
-  const { error } = await supabaseClient
-    .from("expense_categories")
-    .delete()
-    .eq("id", id);
+  const { data, error } = await supabaseClient
+    .from("expenses")
+    .select("id")
+    .eq("category", name)
+    .limit(1);
 
   if (error) {
     alert(error.message);
     return;
   }
 
-  categoryModal.classList.add("hidden");
-await loadReports();
+  if ((data || []).length > 0) {
+    alert("This category is already used in expenses. Rename it instead.");
+    return;
+  }
 
+  if (!confirm(`Delete category "${name}"? This will also remove its saved budgets.`)) {
+    return;
+  }
+
+  const { error: deleteBudgetsError } = await supabaseClient
+    .from("category_budgets")
+    .delete()
+    .eq("category_name", name);
+
+  if (deleteBudgetsError) {
+    alert(deleteBudgetsError.message);
+    return;
+  }
+
+  const { error: deleteCategoryError } = await supabaseClient
+    .from("expense_categories")
+    .delete()
+    .eq("id", id);
+
+  if (deleteCategoryError) {
+    alert(deleteCategoryError.message);
+    return;
+  }
+
+  categoryModal.classList.add("hidden");
+  await loadReports();
 }
+
 
 
 function openBudgetModal() {
@@ -553,8 +629,6 @@ function openBudgetModal() {
         name="${escapeHtml(category.name)}"
         type="text"
         inputmode="decimal"
-        step="0.01"
-        min="0"
         value="${budgetByCategory[category.name] ?? ""}"
         placeholder="No budget"
       />
@@ -576,50 +650,77 @@ async function saveBudgets(e) {
 
   const selectedMonth = reportMonth.value || getCurrentMonthValue();
   const form = new FormData(budgetModalForm);
-  const payloads = [];
+  const existingBudgetByCategory = Object.fromEntries(
+    currentBudgets.map((budget) => [budget.category_name, budget])
+  );
 
-  currentCategories.forEach((category) => {
-    const rawValue = form.get(category.name);
+  const upsertPayloads = [];
+  const categoriesToDelete = [];
 
-    if (rawValue === null || rawValue === "") {
-      return;
+  for (const category of currentCategories) {
+    const rawValue = String(form.get(category.name) ?? "").trim();
+    const existingBudget = existingBudgetByCategory[category.name];
+
+    if (rawValue === "") {
+      if (existingBudget) {
+        const confirmed = confirm(
+          `Clear the budget for "${category.name}"? This will delete the saved budget for ${selectedMonth}.`
+        );
+
+        if (!confirmed) {
+          return;
+        }
+
+        categoriesToDelete.push(category.name);
+      }
+
+      continue;
     }
 
     const parsedBudgetAmount = parseAmount(rawValue);
 
     if (Number.isNaN(parsedBudgetAmount)) {
-      alert("Please enter a valid amount.");
+      alert(`Please enter a valid amount for "${category.name}".`);
       return;
     }
 
-    payloads.push({
+    upsertPayloads.push({
       category_name: category.name,
       month: selectedMonth,
       budget_amount: parsedBudgetAmount,
       user_id: user.id
     });
-  });
-
-  if (payloads.length === 0) {
-    budgetModal.classList.add("hidden");
-    return;
   }
 
-  const { error } = await supabaseClient
-    .from("category_budgets")
-    .upsert(payloads, {
-      onConflict: "category_name,month"
-    });
+  if (categoriesToDelete.length > 0) {
+    const { error: deleteError } = await supabaseClient
+      .from("category_budgets")
+      .delete()
+      .eq("month", selectedMonth)
+      .in("category_name", categoriesToDelete);
 
-  if (error) {
-    alert(error.message);
-    return;
+    if (deleteError) {
+      alert(deleteError.message);
+      return;
+    }
+  }
+
+  if (upsertPayloads.length > 0) {
+    const { error: upsertError } = await supabaseClient
+      .from("category_budgets")
+      .upsert(upsertPayloads, {
+        onConflict: "category_name,month"
+      });
+
+    if (upsertError) {
+      alert(upsertError.message);
+      return;
+    }
   }
 
   budgetModal.classList.add("hidden");
   await loadReports();
 }
-
 
 
 function getExpensesByCategory(expenses) {
@@ -971,6 +1072,50 @@ function getNextMonthValue(monthValue) {
   return `${nextYear}-${nextMonth}`;
 }
 
+function getPreviousMonthValue(monthValue) {
+  const [year, month] = monthValue.split("-").map(Number);
+  const previousMonthDate = new Date(year, month - 2, 1);
+  const previousYear = previousMonthDate.getFullYear();
+  const previousMonth = String(previousMonthDate.getMonth() + 1).padStart(2, "0");
+
+  return `${previousYear}-${previousMonth}`;
+}
+
+async function openBudgetModalFromLastMonth() {
+  const previousMonth = getPreviousMonthValue(reportMonth.value || getCurrentMonthValue());
+
+  const { data, error } = await supabaseClient
+    .from("category_budgets")
+    .select("category_name,budget_amount")
+    .eq("month", previousMonth);
+
+  if (error) {
+    alert(error.message);
+    return;
+  }
+
+  const budgetByCategory = Object.fromEntries(
+    (data || []).map((budget) => [budget.category_name, Number(budget.budget_amount || 0)])
+  );
+
+  budgetInputs.innerHTML = currentCategories.map((category) => `
+    <div class="budget-input-row">
+      <label for="budget-${category.id}">${escapeHtml(category.name)}</label>
+      <input
+        id="budget-${category.id}"
+        name="${escapeHtml(category.name)}"
+        type="text"
+        inputmode="decimal"
+        value="${budgetByCategory[category.name] ?? ""}"
+        placeholder="No budget last month"
+      />
+    </div>
+  `).join("");
+
+  budgetModal.classList.remove("hidden");
+}
+
+
 function openGoalModal() {
   goalModalForm.reset();
   goalModal.classList.remove("hidden");
@@ -979,6 +1124,10 @@ function openGoalModal() {
 async function addGoalFromReports(e) {
   e.preventDefault();
 
+  if (!validateRequiredFields(e.target)) {
+    return;
+  }
+
   const user = await getCurrentUser();
 
   if (!user) {
@@ -986,16 +1135,19 @@ async function addGoalFromReports(e) {
     return;
   }
 
+  setSubmitButtonState(e.target, true, "Saving...");
+
   const form = new FormData(goalModalForm);
   const payload = Object.fromEntries(form.entries());
 
-payload.user_id = user.id;
-payload.target_amount = parseAmount(payload.target_amount);
+  payload.user_id = user.id;
+  payload.target_amount = parseAmount(payload.target_amount);
 
-if (Number.isNaN(payload.target_amount)) {
-  alert("Please enter a valid amount.");
-  return;
-}
+  if (Number.isNaN(payload.target_amount)) {
+    alert("Please enter a valid amount.");
+    setSubmitButtonState(e.target, false);
+    return;
+  }
 
   const { error } = await supabaseClient
     .from("savings_goals")
@@ -1003,10 +1155,13 @@ if (Number.isNaN(payload.target_amount)) {
 
   if (error) {
     alert(error.message);
+    setSubmitButtonState(e.target, false);
     return;
   }
 
   goalModal.classList.add("hidden");
+  goalModalForm.reset();
+  setSubmitButtonState(e.target, false);
   await loadReports();
 }
 
@@ -1046,6 +1201,8 @@ function openEditGoalsModal() {
 async function saveGoalChanges(e) {
   e.preventDefault();
 
+  setSubmitButtonState(e.target, true, "Saving...");
+
   const form = new FormData(editGoalsModalForm);
 
   for (const goal of currentGoals) {
@@ -1057,27 +1214,29 @@ async function saveGoalChanges(e) {
 
     if (!newName) {
       alert("Goal name cannot be empty.");
+      setSubmitButtonState(e.target, false);
       return;
     }
 
     if (Number.isNaN(newTarget)) {
-  alert("Please enter a valid amount.");
-  return;
-}
+      alert("Please enter a valid amount.");
+      setSubmitButtonState(e.target, false);
+      return;
+    }
 
     if (newName === oldName && newTarget === oldTarget) {
       continue;
     }
 
     if (newName !== oldName) {
-  const confirmed = confirm(
-    `Rename goal "${oldName}" to "${newName}"? Existing savings records will stay linked to this renamed goal.`
-  );
+      const confirmed = confirm(
+        `Rename goal "${oldName}" to "${newName}"? Existing savings records will stay linked to this renamed goal.`
+      );
 
-  if (!confirmed) {
-    continue;
-  }
-}
+      if (!confirmed) {
+        continue;
+      }
+    }
 
     const { error } = await supabaseClient
       .from("savings_goals")
@@ -1089,11 +1248,13 @@ async function saveGoalChanges(e) {
 
     if (error) {
       alert(error.message);
+      setSubmitButtonState(e.target, false);
       return;
     }
   }
 
   editGoalsModal.classList.add("hidden");
+  setSubmitButtonState(e.target, false);
   await loadReports();
 }
 
@@ -1156,6 +1317,8 @@ function openSourceModal() {
 async function saveSourceChanges(e) {
   e.preventDefault();
 
+  setSubmitButtonState(e.target, true, "Saving...");
+
   const form = new FormData(sourceModalForm);
 
   for (const source of currentSources) {
@@ -1181,6 +1344,7 @@ async function saveSourceChanges(e) {
 
     if (sourceError) {
       alert(sourceError.message);
+      setSubmitButtonState(e.target, false);
       return;
     }
 
@@ -1191,11 +1355,13 @@ async function saveSourceChanges(e) {
 
     if (incomeError) {
       alert(incomeError.message);
+      setSubmitButtonState(e.target, false);
       return;
     }
   }
 
   sourceModal.classList.add("hidden");
+  setSubmitButtonState(e.target, false);
   await loadReports();
 }
 
@@ -1240,6 +1406,10 @@ function openRecurringExpenseModal() {
 async function addRecurringExpense(e) {
   e.preventDefault();
 
+  if (!validateRequiredFields(e.target)) {
+    return;
+  }
+
   const user = await getCurrentUser();
 
   if (!user) {
@@ -1247,19 +1417,22 @@ async function addRecurringExpense(e) {
     return;
   }
 
+  setSubmitButtonState(e.target, true, "Saving...");
+
   const form = new FormData(recurringExpenseForm);
   const payload = Object.fromEntries(form.entries());
 
-payload.user_id = user.id;
-payload.amount = parseAmount(payload.amount);
-payload.interval_count = Number(payload.interval_count);
-payload.next_due_date = payload.start_date;
-payload.active = true;
+  payload.user_id = user.id;
+  payload.amount = parseAmount(payload.amount);
+  payload.interval_count = Number(payload.interval_count);
+  payload.next_due_date = payload.start_date;
+  payload.active = true;
 
-if (Number.isNaN(payload.amount)) {
-  alert("Please enter a valid amount.");
-  return;
-}
+  if (Number.isNaN(payload.amount)) {
+    alert("Please enter a valid amount.");
+    setSubmitButtonState(e.target, false);
+    return;
+  }
 
   const { error } = await supabaseClient
     .from("recurring_expenses")
@@ -1267,10 +1440,13 @@ if (Number.isNaN(payload.amount)) {
 
   if (error) {
     alert(error.message);
+    setSubmitButtonState(e.target, false);
     return;
   }
 
   recurringExpenseModal.classList.add("hidden");
+  recurringExpenseForm.reset();
+  setSubmitButtonState(e.target, false);
   await loadReports();
 }
 
@@ -1353,6 +1529,10 @@ async function toggleRecurringExpenseActive(id, isActive) {
 async function logout() {
   await supabaseClient.auth.signOut();
   window.location.href = "index.html";
+}
+
+if (copyLastMonthBudgetsBtn) {
+  copyLastMonthBudgetsBtn.addEventListener("click", openBudgetModalFromLastMonth);
 }
 
 if (editCategoriesBtn) {
@@ -1457,6 +1637,7 @@ if (closeEditRecurringExpensesModalBtn) {
 window.toggleRecurringExpenseActive = toggleRecurringExpenseActive;
 window.deleteRecurringExpense = deleteRecurringExpense;
 
-
+attachValidationClear(goalModalForm);
+attachValidationClear(recurringExpenseForm);
 
 initReportsPage().catch(console.error);
