@@ -25,12 +25,16 @@ const reportMonth = document.getElementById("reportMonth");
 const moneyFlowChartEl = document.getElementById("moneyFlowChart");
 let moneyFlowChart = null;
 
-
 const editCategoriesBtn = document.getElementById("editCategoriesBtn");
 const categoryModal = document.getElementById("categoryModal");
 const closeCategoryModalBtn = document.getElementById("closeCategoryModalBtn");
 const categoryModalForm = document.getElementById("categoryModalForm");
 const categoryInputs = document.getElementById("categoryInputs");
+const reorderCategoriesBtn = document.getElementById("reorderCategoriesBtn");
+const reorderCategoriesModal = document.getElementById("reorderCategoriesModal");
+const closeReorderCategoriesModalBtn = document.getElementById("closeReorderCategoriesModalBtn");
+const reorderCategoryList = document.getElementById("reorderCategoryList");
+const saveCategoryOrderBtn = document.getElementById("saveCategoryOrderBtn");
 
 const budgetModal = document.getElementById("budgetModal");
 const closeBudgetModalBtn = document.getElementById("closeBudgetModalBtn");
@@ -614,7 +618,75 @@ async function deleteCategoryIfUnused(id, name) {
   await loadReports();
 }
 
+function renderReorderCategoryList() {
+  reorderCategoryList.innerHTML = currentCategories.map((category) => `
+    <div class="reorder-category-item" draggable="true" data-id="${category.id}">
+      <span class="reorder-handle"><i class="fa-solid fa-grip-lines"></i></span>
+      <span>${escapeHtml(category.name)}</span>
+    </div>
+  `).join("");
 
+  attachCategoryDragAndDrop();
+}
+
+function openReorderCategoriesModal() {
+  renderReorderCategoryList();
+  reorderCategoriesModal.classList.remove("hidden");
+}
+
+function attachCategoryDragAndDrop() {
+  const items = reorderCategoryList.querySelectorAll(".reorder-category-item");
+  let draggedItem = null;
+
+  items.forEach((item) => {
+    item.addEventListener("dragstart", () => {
+      draggedItem = item;
+      item.classList.add("dragging");
+    });
+
+    item.addEventListener("dragend", () => {
+      item.classList.remove("dragging");
+      draggedItem = null;
+    });
+
+    item.addEventListener("dragover", (e) => {
+      e.preventDefault();
+      const bounding = item.getBoundingClientRect();
+      const offset = e.clientY - bounding.top;
+      const shouldInsertAfter = offset > bounding.height / 2;
+
+      if (!draggedItem || draggedItem === item) {
+        return;
+      }
+
+      if (shouldInsertAfter) {
+        item.after(draggedItem);
+      } else {
+        item.before(draggedItem);
+      }
+    });
+  });
+}
+
+async function saveCategoryOrder() {
+  const items = [...reorderCategoryList.querySelectorAll(".reorder-category-item")];
+  const orderedIds = items.map((item) => item.dataset.id);
+
+  for (let index = 0; index < orderedIds.length; index++) {
+    const { error } = await supabaseClient
+      .from("expense_categories")
+      .update({ sort_order: index })
+      .eq("id", orderedIds[index]);
+
+    if (error) {
+      alert(error.message);
+      return;
+    }
+  }
+
+  reorderCategoriesModal.classList.add("hidden");
+  await loadReports();
+}
 
 function openBudgetModal() {
   const budgetByCategory = Object.fromEntries(
@@ -807,7 +879,8 @@ const trendStartDate = `${trendMonths[0]}-01`;
  
     supabaseClient
     .from("expense_categories")
-    .select("id,name")
+    .select("id,name,sort_order")
+    .order("sort_order", { ascending: true })
     .order("name", { ascending: true }),
  
     supabaseClient
@@ -1549,13 +1622,11 @@ closeCategoryModalBtn.addEventListener("click", () => {
 
 categoryModalForm.addEventListener("submit", saveCategoryChanges);
 
-
 closeBudgetModalBtn.addEventListener("click", () => {
   budgetModal.classList.add("hidden");
 });
 
 budgetModalForm.addEventListener("submit", saveBudgets);
-
 
 mobileMenuBtn.addEventListener("click", () => {
   mobileMenu.classList.toggle("hidden");
@@ -1563,11 +1634,24 @@ mobileMenuBtn.addEventListener("click", () => {
 
 reportMonth.addEventListener("change", loadReports);
 
-
 logoutBtn.addEventListener("click", logout);
 mobileLogoutBtn.addEventListener("click", logout);
 
 window.deleteCategoryIfUnused = deleteCategoryIfUnused;
+
+if (reorderCategoriesBtn) {
+  reorderCategoriesBtn.addEventListener("click", openReorderCategoriesModal);
+}
+
+if (closeReorderCategoriesModalBtn) {
+  closeReorderCategoriesModalBtn.addEventListener("click", () => {
+    reorderCategoriesModal.classList.add("hidden");
+  });
+}
+
+if (saveCategoryOrderBtn) {
+  saveCategoryOrderBtn.addEventListener("click", saveCategoryOrder);
+}
 
 addGoalBtn.addEventListener("click", openGoalModal);
 closeGoalModalBtn.addEventListener("click", () => {

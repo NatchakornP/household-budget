@@ -322,7 +322,8 @@ async function refreshDashboard() {
 
     supabaseClient
       .from("expense_categories")
-      .select("id,name")
+      .select("id,name,sort_order")
+      .order("sort_order", { ascending: true })
       .order("name", { ascending: true }),
 
     supabaseClient

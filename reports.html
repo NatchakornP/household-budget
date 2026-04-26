@@ -125,6 +125,7 @@
         <span>Copy last month</span>
       </button>
       <button type="button" id="editCategoriesBtn" class="section-action-btn">Edit categories</button>
+      <button type="button" id="reorderCategoriesBtn" class="section-action-btn">Reorder categories</button>
       <button type="button" id="editBudgetsBtn" class="section-action-btn">Edit budgets</button>
     </div>
   </div>
@@ -140,6 +141,24 @@
     </thead>
     <tbody id="expenseBudgetBody"></tbody>
   </table>
+</section>
+
+<section id="reorderCategoriesModal" class="modal hidden">
+  <div class="modal-card">
+    <div class="modal-header">
+      <div>
+        <h2>Reorder Categories</h2>
+        <p class="muted">Drag categories to choose the order used in budgets and dropdowns</p>
+      </div>
+      <button type="button" id="closeReorderCategoriesModalBtn" class="secondary">Close</button>
+    </div>
+
+    <div id="reorderCategoryList" class="reorder-category-list"></div>
+
+    <div class="modal-actions">
+      <button type="button" id="saveCategoryOrderBtn">Save order</button>
+    </div>
+  </div>
 </section>
 
 <section class="card">

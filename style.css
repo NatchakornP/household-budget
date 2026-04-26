@@ -909,6 +909,42 @@ body.app-loading .wrap {
   color: #b91c1c;
 }
 
+.reorder-category-list {
+  display: grid;
+  gap: 10px;
+}
+
+.reorder-category-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: white;
+  cursor: grab;
+}
+
+.reorder-category-item:active {
+  cursor: grabbing;
+}
+
+.reorder-category-item.dragging {
+  opacity: 0.55;
+}
+
+.reorder-handle {
+  color: var(--muted);
+  font-size: 16px;
+  line-height: 1;
+}
+
+.modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 16px;
+}
+
 @media (max-width: 768px) {
   .wrap {
     padding: 16px;
