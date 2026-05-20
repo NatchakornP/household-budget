@@ -1,0 +1,25 @@
+name: Supabase Keepalive
+
+on:
+  schedule:
+    - cron: "0 7 * * *"
+    - cron: "0 19 * * *"
+  workflow_dispatch:
+
+jobs:
+  keepalive:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping expense_categories
+        run: |
+          curl -fsS \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/expense_categories?select=id&limit=1"
+
+      - name: Ping income_sources
+        run: |
+          curl -fsS \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}" \
+            "${{ secrets.SUPABASE_URL }}/rest/v1/income_sources?select=id&limit=1"
